@@ -5,9 +5,9 @@ static arcdps_exports arc_exports = { 0 };
 arcdps_exports* init_module() {
 	arc_exports.size = sizeof(arcdps_exports);
 	arc_exports.sig = 0x54434849;
-	arc_exports.imguivers = 19270;
-	arc_exports.out_name = "GW2-ArcDPS-TChineseUI";
-	arc_exports.out_build = "1.0.0";
+    arc_exports.imguivers = 19270;
+	arc_exports.out_name = "TChineseUI";
+	arc_exports.out_build = "0.0.1";
 
 	return &arc_exports;
 }
