@@ -1,0 +1,18 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg-configuration.schema.json",
+  "default-registry": {
+    "kind": "git",
+    "repository": "https://github.com/microsoft/vcpkg",
+    "baseline": "3e797c57a635d3ce8f3473ef344ea44c09c246c8"
+  },
+  "registries": [
+    {
+      "kind": "git",
+      "repository": "https://github.com/Zinn-o-Matics/vcpkg-registry",
+      "baseline": "8bbfa41fafed691587defeae4e04835c2ea281b9",
+      "packages": [
+        "imgui"
+      ]
+    }
+  ]
+}

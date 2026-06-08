@@ -4,6 +4,7 @@
     <Platform Name="x86" />
   </Configurations>
   <Folder Name="/方案項目/">
+    <File Path="vcpkg-configuration.json" />
     <File Path="vcpkg.json" />
   </Folder>
   <Project Path="ArcDPS TChinese UI/ArcDPS TChinese UI.vcxproj" Id="fd425cf3-c45d-42f3-b5a7-5949501fb54a" />
