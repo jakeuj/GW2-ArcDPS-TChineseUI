@@ -1,1 +1,1 @@
-# GW2-ArcDPS-TChineseUI
+# GW2 ArcDPS TChinese UI
