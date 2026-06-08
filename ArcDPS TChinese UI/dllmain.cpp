@@ -1,12 +1,14 @@
-﻿#include <arcdps_structs.h>
+﻿#include <imgui/imgui.h>
+
+#include <arcdps_structs.h>
 
 static arcdps_exports arc_exports = { 0 };
 
 arcdps_exports* init_module() {
 	arc_exports.size = sizeof(arcdps_exports);
 	arc_exports.sig = 0x54434849;
-    arc_exports.imguivers = 19270;
-	arc_exports.out_name = "TChineseUI";
+    arc_exports.imguivers = IMGUI_VERSION_NUM;
+	arc_exports.out_name = "TChinese UI";
 	arc_exports.out_build = "0.0.1";
 
 	return &arc_exports;
