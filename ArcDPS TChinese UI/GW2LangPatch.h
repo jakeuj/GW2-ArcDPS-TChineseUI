@@ -9,6 +9,8 @@ namespace GW2LangPatch {
     // for ui
     bool IsChineseEnabled();
     void QueueLanguageToggle(bool enable);
+    bool IsTradModeEnabled();
+    void SetTradMode(bool enable);
 
     void Update(); // for imgui_callback
 }

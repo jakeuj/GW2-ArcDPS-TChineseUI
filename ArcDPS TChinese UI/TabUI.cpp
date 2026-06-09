@@ -9,6 +9,7 @@ TabUI tabui;
 
 void TabUI::Draw() {
     bool isChinese = GW2LangPatch::IsChineseEnabled();
+    bool isTradMode = GW2LangPatch::IsTradModeEnabled();
     
     if (ImGui::Checkbox(IMGUI_UTF8("開啟內建簡體中文"), &isChinese)) {
         GW2LangPatch::QueueLanguageToggle(isChinese);
@@ -16,7 +17,7 @@ void TabUI::Draw() {
 
     ImGui::SameLine();
 
-    if (ImGui::Button(IMGUI_UTF8("簡體轉繁體模式"))) {
-        // TODO: 簡轉繁模式邏輯
+    if (ImGui::Checkbox(IMGUI_UTF8("簡體轉繁體模式"), &isTradMode)) {
+        GW2LangPatch::SetTradMode(isTradMode);
     }
 }

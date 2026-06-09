@@ -15,6 +15,7 @@ void release_module();
 void options_tab();
 void imgui_callback(uint32_t not_charsel_or_loading, uint32_t hide_if_combat_or_ooc);
 
+HMODULE g_hSelfModule;
 HMODULE arc_dll;
 
 // get exports
@@ -106,5 +107,8 @@ extern "C" __declspec(dllexport) void* get_release_addr(uint32_t reason) {
 
 /* dll main -- winapi */
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved) {
+    if (ul_reason_for_call == DLL_PROCESS_ATTACH) {
+        g_hSelfModule = hModule;
+    }
     return TRUE;
 }

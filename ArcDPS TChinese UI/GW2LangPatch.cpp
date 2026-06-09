@@ -4,6 +4,19 @@
 #include <cstdio>
 #include <cstring>
 #include <string>
+#include <Windows.h>
+#include <unordered_map>
+#include <algorithm>
+#include <vector>
+#include <fstream>
+
+#include <MinHook.h>
+#include <asmjit/asmjit.h>
+
+using namespace asmjit;
+
+extern HMODULE g_hSelfModule;
+extern void ArcLog(const char* message);
 
 namespace {
     // --- 內部狀態變數 ---
@@ -42,6 +55,26 @@ namespace {
         std::array<uint8_t, 512> Bytes{};
         size_t Size = 0;
     };
+
+    struct ReplaceRule {
+        std::wstring inStr;
+        std::wstring outStr;
+    };
+
+    std::unordered_map<wchar_t, std::vector<ReplaceRule>> g_rules;
+
+    constexpr const char* kCParserAnchor = "CParser::Validate(sourceBuffer.Ptr(), sourceBuffer.Term(), true ) == sourceBuffer.Term()";
+
+    bool g_tradModeEnabled = false;
+
+    uint8_t* g_textConverterHookPoint = nullptr;
+
+    // MinHook 產生的原程式跳板指標
+    void* g_textConverterOriginal = nullptr;
+
+    // AsmJit 動態生成的掛鉤函數
+    void* g_textConverterDetour = nullptr;
+    JitRuntime* g_jitRuntime; // AsmJit 執行期記憶體管理
 
     // --- 記憶體輔助與除錯輸出 ---
     void DebugLog(const char* message) {
@@ -309,6 +342,186 @@ namespace {
         g_pendingCall.Function = reinterpret_cast<uintptr_t>(g_languageSetter);
         g_waitingForDeferredCall = true;
     }
+
+    extern "C" void __fastcall CppTextConverterHook(wchar_t* srcText) {
+        if (!g_tradModeEnabled || !srcText) return;
+
+        std::wstring buffer;
+        buffer.reserve(4096);
+        size_t len = wcslen(srcText);
+
+        for (size_t i = 0; i < len; ) {
+            if (i > 8192) break;
+
+            wchar_t c = srcText[i];
+            bool matched = false;
+
+            // 只針對中文字元進行查表
+            if (c >= 19968 && c <= 40959) {
+                auto it = g_rules.find(c);
+                if (it != g_rules.end()) {
+                    // 逐一比對 (優先匹配長詞彙)
+                    for (const auto& rule : it->second) {
+                        size_t matchLen = rule.inStr.length();
+
+                        if (i + matchLen <= len && wcsncmp(&srcText[i], rule.inStr.c_str(), matchLen) == 0) {
+                            buffer.append(rule.outStr); // 寫入修復字型的特殊標籤
+                            i += matchLen; // 跳過已替換的長度
+                            matched = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // 如果沒匹配到，保留原字元
+            if (!matched) {
+                buffer.push_back(c);
+                i++;
+            }
+        }
+
+        // 將修復過後的字串覆寫回遊戲記憶體
+        wmemcpy(srcText, buffer.c_str(), buffer.length());
+        srcText[buffer.length()] = L'\0';
+    }
+
+    // 使用 AsmJit 動態生成跳板
+    void BuildAsmJitDetour() {
+        CodeHolder code;
+        code.init(g_jitRuntime->environment());
+        x86::Assembler a(&code);
+
+        // 保存所有暫存器
+        a.pushfq();
+        a.push(x86::rax);
+        a.push(x86::rcx);
+        a.push(x86::rdx);
+        a.push(x86::rbx);
+        a.push(x86::rbp);
+        a.push(x86::rsi);
+        a.push(x86::rdi);
+        a.push(x86::r8);
+        a.push(x86::r9);
+        a.push(x86::r10);
+        a.push(x86::r11);
+
+        // 堆疊 16-byte 對齊
+        a.mov(x86::rbp, x86::rsp);
+        a.and_(x86::rsp, -16);
+        a.sub(x86::rsp, 32); // Shadow space
+
+        // 準備參數並呼叫 C++
+        a.mov(x86::rcx, x86::rax); // RAX 是字串指標，傳給第一個參數 RCX
+        a.mov(x86::rax, (uint64_t)&CppTextConverterHook);
+        a.call(x86::rax);
+
+        // 還原堆疊
+        a.mov(x86::rsp, x86::rbp);
+
+        // 還原暫存器
+        a.pop(x86::r11);
+        a.pop(x86::r10);
+        a.pop(x86::r9);
+        a.pop(x86::r8);
+        a.pop(x86::rdi);
+        a.pop(x86::rsi);
+        a.pop(x86::rbp);
+        a.pop(x86::rbx);
+        a.pop(x86::rdx);
+        a.pop(x86::rcx);
+        a.pop(x86::rax);
+        a.popfq();
+
+        a.push(x86::rax);                                    // 把剛還原好的原始 RAX 備份到堆疊頂端
+        a.mov(x86::rax, (uint64_t)&g_textConverterOriginal); // 借用 RAX 讀取指標位址
+        a.mov(x86::rax, x86::ptr(x86::rax));                 // 取出 Trampoline 跳板位址
+
+        a.xchg(x86::ptr(x86::rsp), x86::rax);
+
+        a.ret();
+
+        // 將生成的組語寫入執行期記憶體
+        g_jitRuntime->add(&g_textConverterDetour, &code);
+    }
+
+    // 讀取 RC 資源並轉為 wstring
+    std::wstring LoadJsonResource(int resourceId, const char* resourceType) {
+        HRSRC hRes = FindResourceA(g_hSelfModule, MAKEINTRESOURCEA(resourceId), resourceType);
+        if (!hRes) return L"";
+
+        HGLOBAL hMem = LoadResource(g_hSelfModule, hRes);
+        if (!hMem) return L"";
+
+        DWORD size = SizeofResource(g_hSelfModule, hRes);
+        const char* data = static_cast<const char*>(LockResource(hMem));
+
+        if (size == 0 || !data) return L"";
+
+        // 將 UTF-8 的 JSON 轉換為 UTF-16 (wstring)
+        int wlen = MultiByteToWideChar(CP_UTF8, 0, data, size, NULL, 0);
+        std::wstring wstr(wlen, L'\0');
+        MultiByteToWideChar(CP_UTF8, 0, data, size, &wstr[0], wlen);
+
+        return wstr;
+    }
+
+    void ParseAndAddRules(const std::wstring& json, const char* filename) {
+        if (json.empty()) {
+            char err[128];
+            std::snprintf(err, sizeof(err), "Failed to load or parse %s", filename);
+            ArcLog(err);
+            return;
+        }
+
+        size_t pos = 0;
+        int ruleCount = 0;
+        while ((pos = json.find(L"\"i\"", pos)) != std::wstring::npos) {
+            size_t startI = json.find(L"\"", pos + 3);
+            if (startI == std::wstring::npos) break;
+            startI++;
+            size_t endI = json.find(L"\"", startI);
+            if (endI == std::wstring::npos) break;
+            std::wstring iStr = json.substr(startI, endI - startI);
+
+            size_t oPos = json.find(L"\"o\"", endI);
+            if (oPos == std::wstring::npos) break;
+            size_t startO = json.find(L"\"", oPos + 3);
+            if (startO == std::wstring::npos) break;
+            startO++;
+            size_t endO = json.find(L"\"", startO);
+            if (endO == std::wstring::npos) break;
+            std::wstring oStr = json.substr(startO, endO - startO);
+
+            if (!iStr.empty()) {
+                g_rules[iStr[0]].push_back({ iStr, oStr });
+                ruleCount++;
+            }
+            pos = endO + 1;
+        }
+
+        char logMsg[128];
+        std::snprintf(logMsg, sizeof(logMsg), "Loaded %d rules from %s", ruleCount, filename);
+        ArcLog(logMsg);
+    }
+
+    void InitDictionary() {
+        g_rules.clear();
+
+        ParseAndAddRules(LoadJsonResource(101, "JSON"), "jianfan.json");
+        ParseAndAddRules(LoadJsonResource(102, "JSON"), "add.json");
+
+        // 貪婪匹配排序 (長度由長到短)
+        for (auto& pair : g_rules) {
+            std::sort(pair.second.begin(), pair.second.end(), [](const ReplaceRule& a, const ReplaceRule& b) {
+                return a.inStr.length() > b.inStr.length();
+                });
+        }
+
+        char logMsg[128];
+        std::snprintf(logMsg, sizeof(logMsg), "RC Dictionary ready. Keys: %zu", g_rules.size());
+        DebugLog(logMsg);
+    }
 } // anonymous namespace
 
 namespace GW2LangPatch {
@@ -317,6 +530,18 @@ namespace GW2LangPatch {
         uint8_t* base = nullptr;
         size_t size = 0;
         if (!GetMainModuleRange(&base, &size)) return false;
+
+        InitDictionary();
+
+        if (!g_jitRuntime) {
+            g_jitRuntime = new JitRuntime();
+        }
+
+        // 初始化 MinHook
+        if (MH_Initialize() != MH_OK) {
+            DebugLog("MinHook initialization failed!");
+            return false;
+        }
 
         // 1. 解析 Language Setter
         uint8_t* anchor = FindAsciiLiteral(base, size, kValidateLanguageAnchor);
@@ -347,6 +572,32 @@ namespace GW2LangPatch {
         g_viewAdvanceTextOriginalCallTarget = FollowRel32(hookPoint + 1);
         g_viewAdvanceTextHookPoint = hookPoint;
 
+        uint8_t* textAnchor = FindAsciiLiteral(base, size, kCParserAnchor);
+        if (textAnchor) {
+            uint8_t* textRef = FindLeaRipRefTo(base, size, textAnchor);
+            if (textRef) {
+                // 往後找 300 bytes 尋找 48 8B E8
+                for (int offset = 0; offset < 300; ++offset) {
+                    if (textRef[offset] == 0x48 && textRef[offset + 1] == 0x8B && textRef[offset + 2] == 0xE8) {
+                        g_textConverterHookPoint = textRef + offset;
+
+                        char logMsg[128];
+                        std::snprintf(logMsg, sizeof(logMsg), "Found Hook Point at offset: %d", offset);
+                        DebugLog(logMsg);
+
+                        // 動態生成 AsmJit 跳板
+                        BuildAsmJitDetour();
+
+                        // 建立 MinHook
+                        if (MH_CreateHook(g_textConverterHookPoint, g_textConverterDetour, &g_textConverterOriginal) != MH_OK) {
+                            DebugLog("MH_CreateHook failed for Text Converter!");
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
         g_initialized = true;
         DebugLog("Initialization complete.");
         return true;
@@ -366,6 +617,11 @@ namespace GW2LangPatch {
             g_callerCodeCave = nullptr;
         }
 
+        if (g_jitRuntime) {
+            delete g_jitRuntime;
+            g_jitRuntime = nullptr;
+        }
+
         g_initialized = false;
     }
 
@@ -377,6 +633,25 @@ namespace GW2LangPatch {
         if (!g_initialized) return;
         g_pendingEnable = enable;
         g_hasPendingApply = true;
+    }
+
+    bool IsTradModeEnabled() {
+        return g_tradModeEnabled;
+    }
+
+    void SetTradMode(bool enable) {
+        if (!g_initialized || !g_textConverterHookPoint) return;
+
+        if (enable && !g_tradModeEnabled) {
+            if (MH_EnableHook(g_textConverterHookPoint) == MH_OK) {
+                g_tradModeEnabled = true;
+            }
+        }
+        else if (!enable && g_tradModeEnabled) {
+            if (MH_DisableHook(g_textConverterHookPoint) == MH_OK) {
+                g_tradModeEnabled = false;
+            }
+        }
     }
 
     void Update() {
