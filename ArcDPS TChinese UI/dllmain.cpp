@@ -46,7 +46,7 @@ arcdps_exports* init_module() {
 
     arc_exports.imguivers = IMGUI_VERSION_NUM;
     arc_exports.out_name = "TChinese UI";
-    arc_exports.out_build = "0.0.1";
+    arc_exports.out_build = "1.0.0";
 
     if (loading_successful)
     {
