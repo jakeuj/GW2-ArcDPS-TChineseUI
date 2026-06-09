@@ -32,5 +32,13 @@
     <ClInclude Include="GW2LangPatch.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resource.rc">
+      <Filter>資源檔</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

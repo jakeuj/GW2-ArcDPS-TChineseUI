@@ -3,7 +3,10 @@
   "name": "arcdps-tchinese-ui-plugin",
   "version-string": "0.0.1",
   "dependencies": [
-    "imgui"
+    "imgui",
+    "minhook",
+    "nlohmann-json",
+    "asmjit"
   ],
   "overrides": [
     {
