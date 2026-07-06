@@ -7,6 +7,8 @@
 #include <Windows.h>
 #include <unordered_map>
 #include <algorithm>
+#include <filesystem>
+#include <system_error>
 #include <vector>
 #include <fstream>
 
@@ -23,6 +25,10 @@ namespace {
     constexpr const char* kValidateLanguageAnchor = "ValidateLanguage(language)";
     constexpr const char* kViewAdvanceTextAnchor = "ViewAdvanceText";
     constexpr uint32_t kChineseLanguageId = 5;
+    constexpr const wchar_t* kConfigFileName = L"arcdps_tchineseui.ini";
+    constexpr const wchar_t* kConfigSection = L"TChineseUI";
+    constexpr const wchar_t* kConfigChineseEnabledKey = L"chinese_enabled";
+    constexpr const wchar_t* kConfigTradModeEnabledKey = L"trad_mode_enabled";
 
     bool g_initialized = false;
     bool g_chineseEnabled = false;
@@ -66,6 +72,7 @@ namespace {
     constexpr const char* kCParserAnchor = "CParser::Validate(sourceBuffer.Ptr(), sourceBuffer.Term(), true ) == sourceBuffer.Term()";
 
     bool g_tradModeEnabled = false;
+    std::wstring g_configPath;
 
     uint8_t* g_textConverterHookPoint = nullptr;
 
@@ -79,6 +86,51 @@ namespace {
     // --- 記憶體輔助與除錯輸出 ---
     void DebugLog(const char* message) {
         OutputDebugStringA((std::string("[GW2LangPatch] ") + message + "\n").c_str());
+    }
+
+    const std::wstring& GetConfigPath() {
+        if (!g_configPath.empty()) return g_configPath;
+
+        std::array<wchar_t, MAX_PATH> exePath{};
+        DWORD length = GetModuleFileNameW(nullptr, exePath.data(), static_cast<DWORD>(exePath.size()));
+        std::filesystem::path configDir;
+
+        if (length > 0 && length < exePath.size()) {
+            configDir = std::filesystem::path(exePath.data()).parent_path() / L"addons" / L"arcdps";
+        }
+        else {
+            configDir = std::filesystem::current_path() / L"addons" / L"arcdps";
+        }
+
+        std::error_code ec;
+        std::filesystem::create_directories(configDir, ec);
+        g_configPath = (configDir / kConfigFileName).wstring();
+        return g_configPath;
+    }
+
+    bool ReadConfigBool(const wchar_t* key, bool fallback) {
+        return GetPrivateProfileIntW(kConfigSection, key, fallback ? 1 : 0, GetConfigPath().c_str()) != 0;
+    }
+
+    void WriteConfigBool(const wchar_t* key, bool value) {
+        WritePrivateProfileStringW(kConfigSection, key, value ? L"1" : L"0", GetConfigPath().c_str());
+    }
+
+    void SaveSettings(bool chineseEnabled, bool tradModeEnabled) {
+        WriteConfigBool(kConfigChineseEnabledKey, chineseEnabled);
+        WriteConfigBool(kConfigTradModeEnabledKey, tradModeEnabled);
+    }
+
+    void LoadSettings(bool& chineseEnabled, bool& tradModeEnabled) {
+        const std::wstring& configPath = GetConfigPath();
+        bool configExists = std::filesystem::exists(configPath);
+
+        chineseEnabled = ReadConfigBool(kConfigChineseEnabledKey, true);
+        tradModeEnabled = ReadConfigBool(kConfigTradModeEnabledKey, true);
+
+        if (!configExists) {
+            SaveSettings(chineseEnabled, tradModeEnabled);
+        }
     }
 
     void AppendU8(CodeBuffer& code, uint8_t value) {
@@ -599,6 +651,21 @@ namespace GW2LangPatch {
         }
 
         g_initialized = true;
+
+        bool savedChineseEnabled = false;
+        bool savedTradModeEnabled = false;
+        LoadSettings(savedChineseEnabled, savedTradModeEnabled);
+
+        if (savedChineseEnabled) {
+            g_chineseEnabled = true;
+            g_pendingEnable = true;
+            g_hasPendingApply = true;
+        }
+
+        if (savedTradModeEnabled) {
+            SetTradMode(true);
+        }
+
         DebugLog("Initialization complete.");
         return true;
     }
@@ -631,8 +698,10 @@ namespace GW2LangPatch {
 
     void QueueLanguageToggle(bool enable) {
         if (!g_initialized) return;
+        g_chineseEnabled = enable;
         g_pendingEnable = enable;
         g_hasPendingApply = true;
+        SaveSettings(g_chineseEnabled, g_tradModeEnabled);
     }
 
     bool IsTradModeEnabled() {
@@ -645,11 +714,13 @@ namespace GW2LangPatch {
         if (enable && !g_tradModeEnabled) {
             if (MH_EnableHook(g_textConverterHookPoint) == MH_OK) {
                 g_tradModeEnabled = true;
+                SaveSettings(g_chineseEnabled, g_tradModeEnabled);
             }
         }
         else if (!enable && g_tradModeEnabled) {
             if (MH_DisableHook(g_textConverterHookPoint) == MH_OK) {
                 g_tradModeEnabled = false;
+                SaveSettings(g_chineseEnabled, g_tradModeEnabled);
             }
         }
     }
