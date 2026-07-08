@@ -234,7 +234,7 @@ jobs:
           tag_name: ${{ steps.version.outputs.version }}
           name: ${{ steps.version.outputs.version }}
           body_path: ${{ steps.notes.outputs.path }}
-          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') || contains(github.ref_name, 'test') }}
+          prerelease: ${{ contains(steps.version.outputs.version, 'alpha') || contains(steps.version.outputs.version, 'beta') || contains(steps.version.outputs.version, 'rc') || contains(steps.version.outputs.version, 'test') }}
           files: |
             ${{ env.DLL_PATH }}
             ${{ steps.package.outputs.zip_path }}
