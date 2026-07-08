@@ -4,6 +4,15 @@
 
 此專案是 fork 維護版本。為了避免和原作者未來的版本號衝突，本 fork 的 Release 會使用 `v<上游版本>-fork.N` 格式，例如 `v1.0.0-fork.4`。
 
+## 原作者資訊
+
+原作者在巴哈姆特貼文中發布的版本為 `TChinese UI v1.0.0`，功能介紹為將遊戲畫面改成簡體中文，並以此為基礎進一步轉換成繁體中文。
+
+- 原作者巴哈貼文：<https://forum.gamer.com.tw/C.php?bsn=16901&snA=29614&tnum=9>
+- 原始使用方式：DLL 下載後放置在 Guild Wars 2 遊戲根目錄的 `bin64` 裡即可。
+
+本 fork 延續原作者的繁體中文 UI 外掛方向，並補上設定保存、GitHub Pages 說明頁與自動化 Release 流程。
+
 ## 主要功能
 
 - 提供 Guild Wars 2 ArcDPS 外掛形式的中文 UI 支援。
@@ -37,6 +46,12 @@ Release 會提供：
 4. 啟動遊戲。
 5. 在遊戲中按 `Shift + Alt + T` 叫出 ArcDPS 視窗。
 6. 在 ArcDPS 裡啟用擴展 `TChinese UI`，再依需要調整中文 UI 與繁體轉換模式。
+
+安裝後若沒有看到繁體中文效果，請先確認：
+
+- `arcdps.dll` 與 `arcdps_tchineseui.dll` 都在遊戲根目錄的 `bin64` 資料夾。
+- 遊戲中已用 `Shift + Alt + T` 開啟 ArcDPS 視窗。
+- ArcDPS 的擴展列表中已啟用 `TChinese UI`。
 
 ## 設定檔
 
