@@ -29,11 +29,11 @@
 
 <https://gw2.jakeuj.com/>
 
-[![TChinese UI 效果預覽](docs/assets/tchinese-ui-demo.gif)](https://gw2.jakeuj.com/assets/tchinese-ui-demo.mp4)
+[![TChinese UI 效果預覽](docs/assets/tchinese-ui-demo.gif)](docs/assets/tchinese-ui-demo.mp4)
 
 README 內嵌預覽使用 GIF；高清影片可看：
 
-<https://gw2.jakeuj.com/assets/tchinese-ui-demo.mp4>
+<docs/assets/tchinese-ui-demo.mp4>
 
 ## 下載
 
