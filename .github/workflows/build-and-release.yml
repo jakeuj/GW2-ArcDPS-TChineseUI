@@ -1,0 +1,238 @@
+name: Build and release
+
+on:
+  workflow_dispatch:
+    inputs:
+      new_version:
+        description: "Release version, for example v1.0.0-fork.1. Leave blank to increment the latest fork tag."
+        required: false
+        type: string
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+  models: read
+
+env:
+  PROJECT_FILE: ArcDPS TChinese UI/ArcDPS TChinese UI.vcxproj
+  DLL_PATH: ArcDPS TChinese UI/x64/Release/arcdps_tchineseui.dll
+  ARTIFACT_NAME: arcdps_tchineseui
+  VCPKG_DEFAULT_TRIPLET: x64-windows-static
+
+jobs:
+  build:
+    name: Build DLL and publish release
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Set up MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Resolve release version
+        id: version
+        shell: pwsh
+        run: |
+          git fetch --tags --force
+
+          $versionPattern = '^v\d+\.\d+\.\d+(-fork\.\d+)?(-test\d*)?$'
+
+          if ("${{ github.ref_type }}" -eq "tag") {
+            $version = "${{ github.ref_name }}"
+          } else {
+            $version = "${{ inputs.new_version }}"
+
+            if ([string]::IsNullOrWhiteSpace($version)) {
+              $latestFork = git tag --list "v[0-9]*.[0-9]*.[0-9]*-fork.[0-9]*" --sort=-v:refname | Select-Object -First 1
+
+              if (-not [string]::IsNullOrWhiteSpace($latestFork) -and $latestFork -match '^v(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)-fork\.(?<fork>\d+)$') {
+                $version = "v$($Matches.major).$($Matches.minor).$($Matches.patch)-fork.$([int]$Matches.fork + 1)"
+              } else {
+                $latestBase = git tag --list "v[0-9]*.[0-9]*.[0-9]*" --sort=-v:refname |
+                  Where-Object { $_ -match '^v\d+\.\d+\.\d+$' } |
+                  Select-Object -First 1
+
+                if ([string]::IsNullOrWhiteSpace($latestBase)) {
+                  $latestBase = "v1.0.0"
+                }
+
+                $version = "$latestBase-fork.1"
+              }
+            }
+
+            if (-not $version.StartsWith("v")) {
+              $version = "v$version"
+            }
+          }
+
+          if ($version -notmatch $versionPattern) {
+            throw "Release version '$version' must match vX.Y.Z or vX.Y.Z-fork.N."
+          }
+
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "RELEASE_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Configure vcpkg
+        shell: pwsh
+        run: |
+          $vcpkgRoot = $env:VCPKG_INSTALLATION_ROOT
+          if ([string]::IsNullOrWhiteSpace($vcpkgRoot) -or -not (Test-Path "$vcpkgRoot\vcpkg.exe")) {
+            $vcpkgRoot = "C:\vcpkg"
+          }
+
+          if (-not (Test-Path "$vcpkgRoot\vcpkg.exe")) {
+            throw "vcpkg.exe was not found. Expected VCPKG_INSTALLATION_ROOT or C:\vcpkg."
+          }
+
+          "VCPKG_ROOT=$vcpkgRoot" | Out-File -FilePath $env:GITHUB_ENV -Append
+          & "$vcpkgRoot\vcpkg.exe" version
+          & "$vcpkgRoot\vcpkg.exe" integrate install
+          & "$vcpkgRoot\vcpkg.exe" install --triplet "$env:VCPKG_DEFAULT_TRIPLET" --clean-after-build
+
+      - name: Build Release x64
+        shell: pwsh
+        run: |
+          msbuild "$env:PROJECT_FILE" `
+            /p:Configuration=Release `
+            /p:Platform=x64 `
+            /p:VcpkgRoot="$env:VCPKG_ROOT\" `
+            /p:VcpkgTriplet="$env:VCPKG_DEFAULT_TRIPLET" `
+            /m `
+            /nologo `
+            /verbosity:minimal
+
+      - name: Verify DLL output
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "$env:DLL_PATH")) {
+            throw "Expected DLL was not found at '$env:DLL_PATH'."
+          }
+
+          Get-Item "$env:DLL_PATH" | Format-List FullName,Length,LastWriteTime
+
+      - name: Package DLL
+        id: package
+        shell: pwsh
+        run: |
+          $packageName = "$env:ARTIFACT_NAME-$env:RELEASE_VERSION.zip"
+          $packagePath = Join-Path $env:RUNNER_TEMP $packageName
+
+          Compress-Archive -Path "$env:DLL_PATH" -DestinationPath $packagePath -Force
+
+          "zip_path=$packagePath" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "zip_name=$packageName" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Create tag for manual release
+        if: github.event_name == 'workflow_dispatch'
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          $existingTag = git tag --list "${{ steps.version.outputs.version }}"
+          if (-not [string]::IsNullOrWhiteSpace($existingTag)) {
+            throw "Tag ${{ steps.version.outputs.version }} already exists."
+          }
+
+          git tag -a "${{ steps.version.outputs.version }}" -m "Release ${{ steps.version.outputs.version }}"
+          git push origin "${{ steps.version.outputs.version }}"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}-${{ steps.version.outputs.version }}
+          path: |
+            ${{ env.DLL_PATH }}
+            ${{ steps.package.outputs.zip_path }}
+
+      - name: Generate release notes with GitHub Models
+        id: notes
+        uses: actions/github-script@v7
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+        with:
+          script: |
+            const fs = require("fs");
+            const { execFileSync } = require("child_process");
+
+            const tag = process.env.RELEASE_VERSION;
+            const allTags = execFileSync("git", ["tag", "--list", "v[0-9]*.[0-9]*.[0-9]*", "--sort=-v:refname"], { encoding: "utf8" })
+              .trim()
+              .split(/\r?\n/)
+              .filter(Boolean);
+            const previousTag = allTags.find((candidate) => candidate !== tag);
+            const range = previousTag ? `${previousTag}..HEAD` : "HEAD";
+            const commits = execFileSync("git", ["log", "--no-merges", "--pretty=format:%h %s", range], { encoding: "utf8" }).trim();
+            const compareLine = previousTag
+              ? `\n\n**Full Changelog**: ${previousTag}...${tag}`
+              : "";
+
+            let body = [
+              "## 更新內容",
+              "",
+              commits || "- Initial release",
+              "",
+              "## 安裝方式",
+              "- 下載下方的 `arcdps_tchineseui.dll` 或 ZIP 檔。",
+              "- 將 DLL 放到 Guild Wars 2 目錄，與 `arcdps.dll` 放在同一層。",
+              compareLine.trim(),
+            ].filter(Boolean).join("\n");
+
+            try {
+              const response = await fetch("https://models.github.com/inference/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                  "Authorization": `Bearer ${process.env.GITHUB_TOKEN}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  model: "openai/gpt-4o",
+                  messages: [
+                    {
+                      role: "system",
+                      content: "Write concise GitHub release notes in Traditional Chinese. Keep commit intent, group user-visible changes, and include installation notes for a Guild Wars 2 ArcDPS DLL.",
+                    },
+                    {
+                      role: "user",
+                      content: `Release: ${tag}\nPrevious tag: ${previousTag || "none"}\nCommits:\n${commits || "Initial release"}`,
+                    },
+                  ],
+                  temperature: 0.2,
+                  max_tokens: 600,
+                }),
+              });
+
+              if (!response.ok) {
+                throw new Error(`GitHub Models request failed: ${response.status} ${await response.text()}`);
+              }
+
+              const data = await response.json();
+              const generated = data?.choices?.[0]?.message?.content?.trim();
+              if (generated) {
+                body = `${generated}${compareLine}`;
+              }
+            } catch (error) {
+              core.warning(`Falling back to commit-based release notes: ${error.message}`);
+            }
+
+            fs.writeFileSync("release-notes.md", body, "utf8");
+            core.setOutput("path", "release-notes.md");
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: ${{ steps.version.outputs.version }}
+          body_path: ${{ steps.notes.outputs.path }}
+          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') || contains(github.ref_name, 'test') }}
+          files: |
+            ${{ env.DLL_PATH }}
+            ${{ steps.package.outputs.zip_path }}

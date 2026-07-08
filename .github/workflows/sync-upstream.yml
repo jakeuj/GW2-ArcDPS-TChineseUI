@@ -1,0 +1,63 @@
+name: Sync upstream
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 19 * * 0"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    name: Rebase onto upstream/master
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Rebase sync branch onto upstream
+        id: rebase
+        run: |
+          git remote add upstream https://github.com/m21248074/GW2-ArcDPS-TChineseUI.git
+          git fetch upstream master --tags
+          git checkout -B automation/sync-upstream origin/master
+          git rebase upstream/master
+          if git diff --quiet origin/master...automation/sync-upstream; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Push sync branch
+        if: steps.rebase.outputs.changed == 'true'
+        run: git push --force-with-lease origin automation/sync-upstream
+
+      - name: Open or update pull request
+        if: steps.rebase.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh pr view automation/sync-upstream --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh pr edit automation/sync-upstream \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "chore: sync upstream master" \
+              --body "Scheduled upstream sync. Review conflicts and CI before merging."
+          else
+            gh pr create \
+              --repo "$GITHUB_REPOSITORY" \
+              --base master \
+              --head automation/sync-upstream \
+              --title "chore: sync upstream master" \
+              --body "Scheduled upstream sync. Review conflicts and CI before merging."
+          fi
