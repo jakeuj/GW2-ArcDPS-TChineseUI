@@ -1,0 +1,4 @@
+interface:
+  display_name: "GW2 ArcDPS TChinese UI"
+  short_description: "Repo guide for CI, releases, and upkeep"
+  default_prompt: "Use $gw2-arcdps-tchineseui to make a release or maintain this fork."
