@@ -103,7 +103,8 @@ jobs:
             /p:Configuration=Release `
             /p:Platform=x64 `
             /p:VcpkgRoot="$env:VCPKG_ROOT\" `
-            /p:VcpkgTriplet="$env:VCPKG_DEFAULT_TRIPLET" `
+            /p:VcpkgTriplet=x64-windows-static `
+            /p:VcpkgManifestInstall=false `
             /m `
             /nologo `
             /verbosity:minimal
