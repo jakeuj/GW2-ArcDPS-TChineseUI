@@ -67,6 +67,12 @@ h1 {
   font-weight: 700;
 }
 
+.fork-note {
+  max-width: 680px;
+  margin-top: 16px;
+  font-size: 0.98rem;
+}
+
 .actions {
   display: flex;
   flex-wrap: wrap;
