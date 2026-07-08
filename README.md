@@ -40,6 +40,8 @@
 
 高清影片預覽：
 
+影片來源：原作者巴哈貼文 <https://forum.gamer.com.tw/C.php?bsn=16901&snA=29614&tnum=9>
+
 <table>
   <tr>
     <td align="center">
