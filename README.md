@@ -29,11 +29,33 @@
 
 <https://gw2.jakeuj.com/>
 
-[![TChinese UI 效果預覽](docs/assets/tchinese-ui-demo.gif)](docs/assets/tchinese-ui-demo.mp4)
+<p align="center">
+  <a href="https://github.com/jakeuj/GW2-ArcDPS-TChineseUI/raw/refs/heads/codex/persist-tchinese-ui-settings/docs/assets/tchinese-ui-demo.mp4">
+    <img
+      src="https://github.com/jakeuj/GW2-ArcDPS-TChineseUI/raw/refs/heads/codex/persist-tchinese-ui-settings/docs/assets/tchinese-ui-demo.gif"
+      alt="TChinese UI 效果預覽"
+      width="720">
+  </a>
+</p>
 
-README 內嵌預覽使用 GIF；高清影片可看：
+高清影片預覽：
 
-<docs/assets/tchinese-ui-demo.mp4>
+<table>
+  <tr>
+    <td align="center">
+      <video
+        src="https://github.com/jakeuj/GW2-ArcDPS-TChineseUI/raw/refs/heads/codex/persist-tchinese-ui-settings/docs/assets/tchinese-ui-demo.mp4"
+        controls
+        style="max-width:100%;">
+      </video>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/jakeuj/GW2-ArcDPS-TChineseUI/raw/refs/heads/codex/persist-tchinese-ui-settings/docs/assets/tchinese-ui-demo.mp4">下載 MP4</a>
+    </td>
+  </tr>
+</table>
 
 ## 下載
 
