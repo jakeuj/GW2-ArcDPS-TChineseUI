@@ -104,6 +104,7 @@ jobs:
             /p:Platform=x64 `
             /p:VcpkgRoot="$env:VCPKG_ROOT\" `
             /p:VcpkgTriplet=x64-windows-static `
+            /p:VcpkgEnabled=false `
             /p:VcpkgManifestInstall=false `
             /m `
             /nologo `

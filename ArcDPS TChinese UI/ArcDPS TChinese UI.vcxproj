@@ -151,11 +151,13 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\external\arcdps-extension</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\external\arcdps-extension;$(ProjectDir)..\vcpkg_installed\x64-windows-static\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
+      <AdditionalLibraryDirectories>$(ProjectDir)..\vcpkg_installed\x64-windows-static\lib;$(ProjectDir)..\vcpkg_installed\x64-windows-static\lib\manual-link;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(ProjectDir)..\vcpkg_installed\x64-windows-static\lib\*.lib;$(ProjectDir)..\vcpkg_installed\x64-windows-static\lib\manual-link\*.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
     </Link>
