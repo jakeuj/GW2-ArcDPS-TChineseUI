@@ -23,11 +23,19 @@
 - 內建簡體轉繁體詞庫與額外詞彙修正。
 - 透過 GitHub Actions 自動建置並發布 `arcdps_tchineseui.dll`。
 
+## 專案網頁與效果影片
+
+專案網頁已整理外掛介紹、下載入口、安裝方式、遊戲內啟用方式與效果預覽：
+
+<https://gw2.jakeuj.com/>
+
+[![TChinese UI 效果預覽](docs/assets/plugin-preview.svg)](https://gw2.jakeuj.com/assets/tchinese-ui-demo.mp4)
+
+效果影片：
+
+<https://gw2.jakeuj.com/assets/tchinese-ui-demo.mp4>
+
 ## 下載
-
-專案網頁：
-
-https://gw2.jakeuj.com/
 
 請到 Releases 頁面下載最新版：
 
