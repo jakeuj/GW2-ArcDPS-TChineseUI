@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="640" viewBox="0 0 880 640" role="img" aria-labelledby="title desc">
+  <title id="title">GW2 ArcDPS 繁體中文 UI 外掛介面預覽</title>
+  <desc id="desc">深色 Guild Wars 2 介面中顯示 ArcDPS 外掛面板，可切換中文 UI 與繁體轉換。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#35302a"/>
+      <stop offset="0.52" stop-color="#181d1f"/>
+      <stop offset="1" stop-color="#0e1112"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" x2="1">
+      <stop offset="0" stop-color="#f0d28a"/>
+      <stop offset="1" stop-color="#b88936"/>
+    </linearGradient>
+  </defs>
+  <rect width="880" height="640" fill="url(#bg)"/>
+  <path d="M0 476c124-44 208-36 318 3 106 38 221 49 562-72v233H0z" fill="#121617" opacity=".78"/>
+  <path d="M78 98h724v64H78z" fill="#1b2224" stroke="#4b5658" stroke-width="2"/>
+  <text x="110" y="138" fill="#f4f0e8" font-family="Microsoft JhengHei, Noto Sans TC, sans-serif" font-size="24" font-weight="700">Guild Wars 2</text>
+  <text x="650" y="138" fill="#d6b66e" font-family="Segoe UI, sans-serif" font-size="18" font-weight="700">ArcDPS</text>
+  <rect x="118" y="204" width="644" height="336" rx="8" fill="#192022" stroke="#465154" stroke-width="2"/>
+  <rect x="118" y="204" width="644" height="48" rx="8" fill="#252d30"/>
+  <text x="146" y="235" fill="#f3eee6" font-family="Microsoft JhengHei, Noto Sans TC, sans-serif" font-size="18" font-weight="700">ArcDPS 繁體中文 UI</text>
+  <g transform="translate(146 284)">
+    <rect width="588" height="58" rx="6" fill="#222a2d" stroke="#394346"/>
+    <circle cx="30" cy="29" r="13" fill="url(#gold)"/>
+    <path d="M24 29l5 5 9-12" fill="none" stroke="#17120a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="60" y="25" fill="#f4f0e8" font-family="Microsoft JhengHei, Noto Sans TC, sans-serif" font-size="18" font-weight="700">啟用中文 UI</text>
+    <text x="60" y="45" fill="#aeb9b6" font-family="Microsoft JhengHei, Noto Sans TC, sans-serif" font-size="13">切換遊戲介面語系並保存設定</text>
+    <rect x="490" y="18" width="58" height="24" rx="12" fill="#d7b56d"/>
+    <circle cx="536" cy="30" r="9" fill="#141718"/>
+  </g>
+  <g transform="translate(146 360)">
+    <rect width="588" height="58" rx="6" fill="#222a2d" stroke="#394346"/>
+    <circle cx="30" cy="29" r="13" fill="url(#gold)"/>
+    <path d="M24 29l5 5 9-12" fill="none" stroke="#17120a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="60" y="25" fill="#f4f0e8" font-family="Microsoft JhengHei, Noto Sans TC, sans-serif" font-size="18" font-weight="700">繁體轉換模式</text>
+    <text x="60" y="45" fill="#aeb9b6" font-family="Microsoft JhengHei, Noto Sans TC, sans-serif" font-size="13">套用內建詞庫與額外詞彙修正</text>
+    <rect x="490" y="18" width="58" height="24" rx="12" fill="#d7b56d"/>
+    <circle cx="536" cy="30" r="9" fill="#141718"/>
+  </g>
+  <g transform="translate(146 446)">
+    <text x="0" y="0" fill="#d6b66e" font-family="SFMono-Regular, Consolas, monospace" font-size="15">addons/arcdps/arcdps_tchineseui.ini</text>
+    <text x="0" y="32" fill="#f4f0e8" font-family="Microsoft JhengHei, Noto Sans TC, sans-serif" font-size="17">重啟後自動套用上次設定</text>
+  </g>
+</svg>
