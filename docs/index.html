@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="GW2 ArcDPS 繁體中文 UI 外掛，提供 Guild Wars 2 中文介面、繁體轉換、詞彙修正與設定保存。下載 arcdps_tchineseui.dll 並放到 GW2 目錄即可使用。">
+    <meta name="description" content="GW2 ArcDPS 繁體中文 UI 外掛，提供 Guild Wars 2 中文介面。先將遊戲畫面切成簡體中文，再轉換與修正為繁體中文，並保存使用者設定。">
     <meta name="robots" content="index,follow,max-image-preview:large">
     <meta name="theme-color" content="#101314">
     <link rel="canonical" href="https://gw2.jakeuj.com/">
@@ -11,13 +11,13 @@
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="GW2 ArcDPS 繁體中文 UI">
     <meta property="og:title" content="GW2 ArcDPS 繁體中文 UI 外掛">
-    <meta property="og:description" content="提供 Guild Wars 2 中文介面、繁體轉換、詞彙修正與設定保存的 ArcDPS 外掛。">
+    <meta property="og:description" content="提供 Guild Wars 2 中文介面的 ArcDPS 外掛，將遊戲畫面切成簡體中文後再轉換與修正為繁體中文。">
     <meta property="og:url" content="https://gw2.jakeuj.com/">
     <meta property="og:image" content="https://gw2.jakeuj.com/assets/plugin-preview.svg">
     <meta property="og:image:alt" content="GW2 ArcDPS 繁體中文 UI 外掛介面預覽">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="GW2 ArcDPS 繁體中文 UI 外掛">
-    <meta name="twitter:description" content="提供 Guild Wars 2 中文介面、繁體轉換、詞彙修正與設定保存的 ArcDPS 外掛。">
+    <meta name="twitter:description" content="提供 Guild Wars 2 中文介面的 ArcDPS 外掛，將遊戲畫面切成簡體中文後再轉換與修正為繁體中文。">
     <meta name="twitter:image" content="https://gw2.jakeuj.com/assets/plugin-preview.svg">
     <title>GW2 ArcDPS 繁體中文 UI 外掛 | Guild Wars 2 中文介面</title>
     <link rel="stylesheet" href="./styles.css">
@@ -29,7 +29,7 @@
           <p class="eyebrow">Guild Wars 2 ArcDPS Plugin</p>
           <h1 id="page-title">GW2 ArcDPS 繁體中文 UI</h1>
           <p class="lead">
-            下載 <strong>arcdps_tchineseui.dll</strong>，讓 Guild Wars 2 介面使用中文，並提供繁體中文顯示、簡體轉繁體詞彙修正，以及重啟後自動套用的設定保存。
+            下載 <strong>arcdps_tchineseui.dll</strong>，讓 Guild Wars 2 介面使用中文。外掛會先將遊戲畫面切換成簡體中文，再進一步轉換與修正為繁體中文。
           </p>
           <div class="actions" aria-label="主要操作">
             <a class="button primary" href="https://github.com/jakeuj/GW2-ArcDPS-TChineseUI/releases/latest">下載最新版</a>
@@ -46,19 +46,19 @@
           <h2>主要功能</h2>
           <ul>
             <li>提供 ArcDPS 外掛形式的中文 UI 支援。</li>
+            <li>將遊戲畫面切成簡體中文，再轉換為繁體中文。</li>
             <li>可切換中文 UI 與繁體轉換模式。</li>
             <li>記住設定，重啟遊戲後自動套用。</li>
-            <li>內建簡體轉繁體詞庫與額外詞彙修正。</li>
           </ul>
         </article>
 
         <article>
           <h2>安裝方式</h2>
           <ol>
-            <li>先安裝 ArcDPS。</li>
+            <li>先安裝 <a href="https://www.deltaconnected.com/arcdps/">ArcDPS</a>。</li>
             <li>從 Releases 下載 <code>arcdps_tchineseui.dll</code>。</li>
-            <li>將 DLL 放到 Guild Wars 2 目錄，與 <code>arcdps.dll</code> 同一層。</li>
-            <li>啟動遊戲後從 ArcDPS UI 調整外掛設定。</li>
+            <li>將 DLL 放到 Guild Wars 2 遊戲根目錄的 <code>bin64</code> 資料夾。</li>
+            <li>進遊戲後按 <code>Shift + Alt + T</code> 開啟 ArcDPS。</li>
           </ol>
         </article>
 
@@ -70,11 +70,28 @@
         </article>
       </section>
 
+      <section class="walkthrough" aria-labelledby="usage-title">
+        <div>
+          <h2 id="usage-title">遊戲內啟用方式</h2>
+          <ol>
+            <li>確認 <code>arcdps.dll</code> 與 <code>arcdps_tchineseui.dll</code> 已放在正確位置。</li>
+            <li>啟動 Guild Wars 2。</li>
+            <li>按 <code>Shift + Alt + T</code> 叫出 ArcDPS 視窗。</li>
+            <li>在 ArcDPS 裡啟用擴展 <strong>TChinese UI</strong>。</li>
+            <li>依需要切換中文 UI 與繁體轉換模式。</li>
+          </ol>
+        </div>
+        <div class="effect" aria-label="TChinese UI 效果預覽">
+          <video autoplay loop muted playsinline preload="metadata" poster="./assets/plugin-preview.svg">
+            <source src="./assets/tchinese-ui-demo.mp4" type="video/mp4">
+          </video>
+        </div>
+      </section>
+
       <section class="details" aria-labelledby="download-title">
         <h2 id="download-title">下載檔案</h2>
         <p>
-          最新版本會在 GitHub Releases 提供 DLL 與 ZIP。若只想安裝外掛，下載
-          <code>arcdps_tchineseui.dll</code> 即可。
+          最新版本會在 GitHub Releases 提供 DLL 與 ZIP。若只想安裝外掛，下載 <code>arcdps_tchineseui.dll</code> 後放到遊戲根目錄的 <code>bin64</code> 裡即可。
         </p>
         <a class="text-link" href="https://github.com/jakeuj/GW2-ArcDPS-TChineseUI/releases/latest">前往最新 Release</a>
       </section>

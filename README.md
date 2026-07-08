@@ -1,12 +1,13 @@
 # GW2 ArcDPS 繁體中文 UI
 
-這是 Guild Wars 2 的 ArcDPS 外掛，主要功能是讓遊戲介面使用中文，並提供繁體中文顯示與簡體轉繁體詞彙修正。
+這是 Guild Wars 2 的 ArcDPS 外掛，主要功能是讓遊戲介面使用中文。外掛會先將遊戲畫面切換成簡體中文，再以此為基礎進一步轉換與修正為繁體中文。
 
 此專案是 fork 維護版本。為了避免和原作者未來的版本號衝突，本 fork 的 Release 會使用 `v<上游版本>-fork.N` 格式，例如 `v1.0.0-fork.4`。
 
 ## 主要功能
 
 - 提供 Guild Wars 2 ArcDPS 外掛形式的中文 UI 支援。
+- 將遊戲畫面改成簡體中文，並進一步翻譯與修正為繁體中文。
 - 可在 ArcDPS UI 中切換中文 UI 與繁體轉換模式。
 - 記住使用者設定，重啟遊戲後自動套用上次狀態。
 - 設定檔儲存在 `addons/arcdps/arcdps_tchineseui.ini`。
@@ -30,10 +31,12 @@ Release 會提供：
 
 ## 安裝方式
 
-1. 先安裝 ArcDPS。
+1. 先安裝 ArcDPS：<https://www.deltaconnected.com/arcdps/>
 2. 從 Releases 下載 `arcdps_tchineseui.dll`。
-3. 將 `arcdps_tchineseui.dll` 放到 Guild Wars 2 目錄，與 `arcdps.dll` 放在同一層。
-4. 啟動遊戲後，從 ArcDPS UI 開啟或調整此外掛功能。
+3. 將 `arcdps_tchineseui.dll` 放到 Guild Wars 2 遊戲根目錄的 `bin64` 資料夾。
+4. 啟動遊戲。
+5. 在遊戲中按 `Shift + Alt + T` 叫出 ArcDPS 視窗。
+6. 在 ArcDPS 裡啟用擴展 `TChinese UI`，再依需要調整中文 UI 與繁體轉換模式。
 
 ## 設定檔
 
