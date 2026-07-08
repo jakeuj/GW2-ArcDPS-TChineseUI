@@ -62,6 +62,11 @@ h1 {
   font-size: 1.15rem;
 }
 
+.lead strong {
+  color: var(--text);
+  font-weight: 700;
+}
+
 .actions {
   display: flex;
   flex-wrap: wrap;
@@ -121,6 +126,14 @@ article {
   background: rgba(26, 32, 34, 0.88);
 }
 
+.details {
+  margin-top: 18px;
+  padding: 26px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(18, 22, 23, 0.92);
+}
+
 h2 {
   margin: 0 0 14px;
   font-size: 1.2rem;
@@ -146,6 +159,13 @@ p {
 p + pre,
 pre + p {
   margin-top: 12px;
+}
+
+.text-link {
+  display: inline-flex;
+  margin-top: 16px;
+  color: var(--accent-strong);
+  font-weight: 700;
 }
 
 code {
