@@ -15,6 +15,10 @@
 
 ## 下載
 
+專案網頁：
+
+https://gw2.jakeuj.com/
+
 請到 Releases 頁面下載最新版：
 
 https://github.com/jakeuj/GW2-ArcDPS-TChineseUI/releases
