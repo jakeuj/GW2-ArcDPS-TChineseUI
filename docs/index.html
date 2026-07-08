@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="GW2 ArcDPS 繁體中文 UI 外掛，提供 Guild Wars 2 中文介面、繁體轉換與設定保存。">
+    <title>GW2 ArcDPS 繁體中文 UI</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main>
+      <section class="hero" aria-labelledby="page-title">
+        <div class="hero-copy">
+          <p class="eyebrow">Guild Wars 2 ArcDPS Plugin</p>
+          <h1 id="page-title">GW2 ArcDPS 繁體中文 UI</h1>
+          <p class="lead">
+            讓 Guild Wars 2 介面使用中文，並提供繁體中文顯示、簡體轉繁體詞彙修正，以及重啟後自動套用的設定保存。
+          </p>
+          <div class="actions" aria-label="主要操作">
+            <a class="button primary" href="https://github.com/jakeuj/GW2-ArcDPS-TChineseUI/releases/latest">下載最新版</a>
+            <a class="button secondary" href="https://github.com/jakeuj/GW2-ArcDPS-TChineseUI">查看 GitHub</a>
+          </div>
+        </div>
+        <div class="preview" aria-label="外掛介面預覽">
+          <img src="./assets/plugin-preview.svg" alt="ArcDPS 繁體中文 UI 外掛介面預覽">
+        </div>
+      </section>
+
+      <section class="content-grid" aria-label="外掛資訊">
+        <article>
+          <h2>主要功能</h2>
+          <ul>
+            <li>提供 ArcDPS 外掛形式的中文 UI 支援。</li>
+            <li>可切換中文 UI 與繁體轉換模式。</li>
+            <li>記住設定，重啟遊戲後自動套用。</li>
+            <li>內建簡體轉繁體詞庫與額外詞彙修正。</li>
+          </ul>
+        </article>
+
+        <article>
+          <h2>安裝方式</h2>
+          <ol>
+            <li>先安裝 ArcDPS。</li>
+            <li>下載 <code>arcdps_tchineseui.dll</code>。</li>
+            <li>將 DLL 放到 Guild Wars 2 目錄，與 <code>arcdps.dll</code> 同一層。</li>
+            <li>啟動遊戲後從 ArcDPS UI 調整外掛設定。</li>
+          </ol>
+        </article>
+
+        <article>
+          <h2>設定檔</h2>
+          <p>外掛會將設定寫入：</p>
+          <pre><code>addons/arcdps/arcdps_tchineseui.ini</code></pre>
+          <p>目前保存 <code>chinese_enabled</code> 與 <code>trad_mode_enabled</code>。</p>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>
