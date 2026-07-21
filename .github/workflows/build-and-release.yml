@@ -245,7 +245,7 @@ jobs:
             const range = previousTag ? `${previousTag}..HEAD` : "HEAD";
             const commits = execFileSync("git", ["log", "--no-merges", "--pretty=format:%h %s", range], { encoding: "utf8" }).trim();
             const compareLine = previousTag
-              ? `**Full Changelog**: ${previousTag}...${tag}`
+              ? `**Full Changelog**: https://github.com/${context.repo.owner}/${context.repo.repo}/compare/${previousTag}...${tag}`
               : "";
 
             let summary = [
@@ -258,10 +258,10 @@ jobs:
               "",
               "## 安裝方式",
               "- 下載下方的 `arcdps_tchineseui.dll` 或 ZIP 檔。",
-              "- 關閉 Guild Wars 2 後，將 DLL 放到遊戲目錄，與 `arcdps.dll` 放在同一層。",
+              "- 完全關閉 Guild Wars 2，先備份舊 DLL，再將新 DLL 放到 `arcdps.log` 顯示的實際載入位置；常見位置是遊戲根目錄或 `bin64`，請勿兩邊都保留一份。",
               "",
               "## 回復舊版",
-              "- 關閉 Guild Wars 2，刪除新 DLL 後放回先前備份，或改用上一個可正常使用的版本。",
+              "- 完全關閉 Guild Wars 2，放回先前備份或上一個可正常使用的 DLL；通常可以保留既有 INI。",
               "",
               "> arcdps 與其擴充為第三方工具，不受 ArenaNet 支援，使用風險請自行負擔。",
             ];

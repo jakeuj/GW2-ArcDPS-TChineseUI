@@ -37,7 +37,7 @@
             下載 <strong>arcdps_tchineseui.dll</strong>，讓 Guild Wars 2 介面使用中文。外掛會先將遊戲畫面切換成簡體中文，再進一步轉換與修正為繁體中文。
           </p>
           <p class="fork-note">
-            本站是 <a href="https://github.com/m21248074/GW2-ArcDPS-TChineseUI">m21248074/GW2-ArcDPS-TChineseUI</a> 的 fork 維護頁面，延續原作者繁化發布並補上設定保存與自動化 Release。
+            本站是 <a href="https://github.com/m21248074/GW2-ArcDPS-TChineseUI">m21248074/GW2-ArcDPS-TChineseUI</a> 的 fork 維護頁面，延續原作者繁化發布並補上設定保存、精確初始化診斷與自動化 Release。目前穩定版為 <a href="https://github.com/jakeuj/GW2-ArcDPS-TChineseUI/releases/tag/v1.0.0-fork.5">v1.0.0-fork.5</a>。
           </p>
           <div class="actions" aria-label="主要操作">
             <a class="button primary" href="https://github.com/jakeuj/GW2-ArcDPS-TChineseUI/releases/latest">下載最新版</a>
@@ -57,6 +57,7 @@
             <li>將遊戲畫面切成簡體中文，再轉換為繁體中文。</li>
             <li>可切換中文 UI 與繁體轉換模式。</li>
             <li>記住設定，重啟遊戲後自動套用。</li>
+            <li>簡轉繁不可用時降級載入，保留簡體中文與偏好設定。</li>
           </ul>
         </article>
 
@@ -64,8 +65,9 @@
           <h2>安裝方式</h2>
           <ol>
             <li>先安裝 <a href="https://www.deltaconnected.com/arcdps/">ArcDPS</a>。</li>
+            <li>完全關閉 Guild Wars 2，備份原本的 DLL 與 INI。</li>
             <li>從 Releases 下載 <code>arcdps_tchineseui.dll</code>。</li>
-            <li>將 DLL 放到 Guild Wars 2 遊戲根目錄的 <code>bin64</code> 資料夾。</li>
+            <li>將 DLL 放到 <code>arcdps.log</code> 顯示的實際載入位置；常見位置是遊戲根目錄或 <code>bin64</code>，請勿兩邊都保留一份。</li>
             <li>進遊戲後按 <code>Shift + Alt + T</code> 開啟 ArcDPS。</li>
           </ol>
         </article>
@@ -75,6 +77,7 @@
           <p>外掛會將設定寫入：</p>
           <pre><code>addons/arcdps/arcdps_tchineseui.ini</code></pre>
           <p>目前保存 <code>chinese_enabled</code> 與 <code>trad_mode_enabled</code>。</p>
+          <p>簡轉繁暫時不可用時仍會保留偏好，供下次啟動重新嘗試。</p>
         </article>
       </section>
 
@@ -82,7 +85,7 @@
         <div>
           <h2 id="usage-title">遊戲內啟用方式</h2>
           <ol>
-            <li>確認 <code>arcdps.dll</code> 與 <code>arcdps_tchineseui.dll</code> 已放在正確位置。</li>
+            <li>確認 <code>arcdps.log</code> 顯示載入的是剛安裝的 <code>arcdps_tchineseui.dll</code>。</li>
             <li>啟動 Guild Wars 2。</li>
             <li>按 <code>Shift + Alt + T</code> 叫出 ArcDPS 視窗。</li>
             <li>在 ArcDPS 裡啟用擴展 <strong>TChinese UI</strong>。</li>
@@ -96,12 +99,32 @@
         </div>
       </section>
 
+      <section class="details" aria-labelledby="troubleshooting-title">
+        <h2 id="troubleshooting-title">疑難排解</h2>
+        <p>正常套用保存的中文與簡轉繁設定時，<code>arcdps.log</code> 應出現：</p>
+        <pre><code>[trad/enable] enabled
+[init/complete] ready
+[language/queue] language-id=5
+[language/apply] completed</code></pre>
+        <p>
+          若出現 <code>[trad/&lt;階段&gt;] unavailable</code>，代表外掛已降級載入；簡體中文仍可使用，簡轉繁選項則會停用並顯示原因。若外掛無法載入，<code>v1.0.0-fork.5</code> 起會以 <code>[init/&lt;階段&gt;]</code> 標示確切失敗位置。
+        </p>
+        <a class="text-link" href="https://github.com/jakeuj/GW2-ArcDPS-TChineseUI/issues">附上版本、載入路徑與相關日誌回報問題</a>
+      </section>
+
       <section class="details" aria-labelledby="download-title">
         <h2 id="download-title">下載檔案</h2>
         <p>
-          最新版本會在 GitHub Releases 提供 DLL 與 ZIP。若只想安裝外掛，下載 <code>arcdps_tchineseui.dll</code> 後放到遊戲根目錄的 <code>bin64</code> 裡即可。
+          最新版本會在 GitHub Releases 提供 DLL 與 ZIP。若只想安裝外掛，下載 <code>arcdps_tchineseui.dll</code>，完全關閉遊戲後再放到 <code>arcdps.log</code> 所指的實際載入位置。
         </p>
         <a class="text-link" href="https://github.com/jakeuj/GW2-ArcDPS-TChineseUI/releases/latest">前往最新 Release</a>
+      </section>
+
+      <section class="details" aria-labelledby="rollback-title">
+        <h2 id="rollback-title">回復舊版與使用提醒</h2>
+        <p>
+          完全關閉 Guild Wars 2 後，將實際載入位置的 DLL 換回先前備份或上一個可正常使用的 Release。通常可以保留現有 INI。arcdps 與其擴充為第三方工具，不受 ArenaNet 支援，使用風險請自行負擔。
+        </p>
       </section>
 
       <section class="details" aria-labelledby="credits-title">

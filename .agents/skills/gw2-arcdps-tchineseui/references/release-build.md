@@ -6,13 +6,15 @@
 - Upstream remote: `m21248074/GW2-ArcDPS-TChineseUI`
 - Upstream/base tag currently used by this fork: `v1.0.0`
 - Fork release tag format: `v<upstream-version>-fork.N`
-- Latest successful release created during setup: `v1.0.0-fork.4`
-- Next stable repair tag after runtime acceptance: `v1.0.0-fork.5`
+- Known-good release checkpoint (2026-07-21): `v1.0.0-fork.5`
+- Next stable fork tag while the upstream base remains `v1.0.0`: `v1.0.0-fork.6`
 - Release assets:
   - `arcdps_tchineseui.dll`
   - `arcdps_tchineseui-<tag>.zip`
 
 Do not use plain semver tags like `v1.1.0` for fork-only releases. Those are reserved for upstream-style/base versions and may conflict with the original author.
+
+Verify the current GitHub state before treating the checkpoint above as latest. The `v1.0.0-fork.5` release was built by Actions run `29827492094`; its published DLL SHA-256 is `da58edcb5cb23cd843d14a7705b4e57e422490b6c220fa5ba5f5c698673b181c`.
 
 ## Release Workflow
 
@@ -68,21 +70,23 @@ Example:
 
 ```markdown
 ## 更新內容
-- 記住 TChinese UI 的啟用狀態，重啟遊戲後會自動套用上次設定。
-- 新增 `addons/arcdps/arcdps_tchineseui.ini` 設定檔，保存 `chinese_enabled` 與 `trad_mode_enabled`。
-- 將繁簡轉換詞庫改為 repo 內建資源，修正 `Resource.rc` 原本指向作者本機絕對路徑的問題。
-- 內建 `jianfan.json` 與 `add.json` 詞庫規則。
+- 以玩家可觀察到的行為說明本版修正，不要直接貼上 commit 標題。
+- 若本版變更初始化或 hook，說明必要功能失敗與簡轉繁降級載入的差異。
+- 若本版變更設定，說明保存項目以及重新啟動後的套用行為。
 
 ## 安裝方式
 - 下載下方的 `arcdps_tchineseui.dll` 或 ZIP 檔。
-- 完全關閉 Guild Wars 2 後，備份舊 DLL，再將新 DLL 放到實際載入的根目錄或 `bin64`。
+- 完全關閉 Guild Wars 2 後，備份舊 DLL，再將新 DLL 放到 `arcdps.log` 顯示的實際載入位置；常見位置是遊戲根目錄或 `bin64`，請勿兩邊都保留一份。
+
+## 更新後確認
+- 正常套用中文與簡轉繁時，`arcdps.log` 應出現 `[trad/enable] enabled`、`[language/queue] language-id=5` 與 `[language/apply] completed`。
 
 ## 回復舊版
 - 完全關閉 Guild Wars 2，放回先前備份或上一個可正常使用的 DLL；保留 INI，除非該版本明確不相容。
 
 > arcdps 與其擴充為第三方工具，不受 ArenaNet 支援，使用風險請自行負擔。
 
-**Full Changelog**: https://github.com/jakeuj/GW2-ArcDPS-TChineseUI/compare/v1.0.0...v1.0.0-fork.N
+**Full Changelog**: https://github.com/jakeuj/GW2-ArcDPS-TChineseUI/compare/<previous-stable-tag>...<current-tag>
 ```
 
 The GitHub Models release-notes call may fail and fall back to commit-based notes. If that happens, edit the release manually:
@@ -90,6 +94,8 @@ The GitHub Models release-notes call may fail and fall back to commit-based note
 ```bash
 gh release edit v1.0.0-fork.N --repo jakeuj/GW2-ArcDPS-TChineseUI --notes-file /path/to/notes.md
 ```
+
+After publishing, download both assets from the Release rather than trusting the workspace copy. Recheck the DLL SHA-256, x64 header, exports, dependents, embedded build string, and live GW2 load before declaring the release complete.
 
 ## Build Pitfalls
 
