@@ -115,6 +115,8 @@ Other project details:
 
 Before accepting an artifact, run `dumpbin /headers`, `/exports`, and `/dependents`; verify x64, both unmangled exports, static runtime behavior, and SHA-256. A non-GW2 smoke process may validate precise load-error lifetime and the release callback, but it cannot prove memory signatures, language application, conversion, or unload safety in the game.
 
+`microsoft/setup-msbuild` may expose MSBuild without adding VC tools such as `dumpbin.exe` to `PATH`. In Actions, resolve `dumpbin.exe` through `%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe`, require the x64 VC tools component, and invoke the returned absolute path.
+
 ## Upstream Sync
 
 The sync workflow is `.github/workflows/sync-upstream.yml`.

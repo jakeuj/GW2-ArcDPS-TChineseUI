@@ -131,12 +131,42 @@ jobs:
 
           Get-Item "$env:DLL_PATH" | Format-List FullName,Length,LastWriteTime
 
-          $headers = (& dumpbin /headers "$env:DLL_PATH" 2>&1) -join "`n"
+          $dumpbinCommand = Get-Command dumpbin.exe -ErrorAction SilentlyContinue
+          if ($dumpbinCommand) {
+            $dumpbinPath = $dumpbinCommand.Source
+          } else {
+            $vswherePath = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
+            if (-not (Test-Path -LiteralPath $vswherePath)) {
+              throw "vswhere.exe was not found at '$vswherePath'."
+            }
+
+            $visualStudioPath = & $vswherePath `
+              -latest `
+              -products * `
+              -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
+              -property installationPath
+            if ([string]::IsNullOrWhiteSpace($visualStudioPath)) {
+              throw "A Visual Studio installation with x64 VC tools was not found."
+            }
+
+            $dumpbinPath = Get-ChildItem `
+              -Path (Join-Path $visualStudioPath "VC\Tools\MSVC\*\bin\Hostx64\x64\dumpbin.exe") `
+              -File `
+              -ErrorAction SilentlyContinue |
+              Sort-Object FullName -Descending |
+              Select-Object -First 1 -ExpandProperty FullName
+          }
+          if ([string]::IsNullOrWhiteSpace($dumpbinPath) -or -not (Test-Path -LiteralPath $dumpbinPath)) {
+            throw "dumpbin.exe could not be resolved."
+          }
+          Write-Host "Using dumpbin: $dumpbinPath"
+
+          $headers = (& $dumpbinPath /headers "$env:DLL_PATH" 2>&1) -join "`n"
           if ($LASTEXITCODE -ne 0 -or $headers -notmatch '(?im)^\s*8664 machine \(x64\)') {
             throw "DLL verification failed: output is not an x64 PE image.`n$headers"
           }
 
-          $exports = (& dumpbin /exports "$env:DLL_PATH" 2>&1) -join "`n"
+          $exports = (& $dumpbinPath /exports "$env:DLL_PATH" 2>&1) -join "`n"
           if ($LASTEXITCODE -ne 0) {
             throw "dumpbin /exports failed.`n$exports"
           }
@@ -146,7 +176,7 @@ jobs:
             }
           }
 
-          $dependents = (& dumpbin /dependents "$env:DLL_PATH" 2>&1) -join "`n"
+          $dependents = (& $dumpbinPath /dependents "$env:DLL_PATH" 2>&1) -join "`n"
           if ($LASTEXITCODE -ne 0) {
             throw "dumpbin /dependents failed.`n$dependents"
           }
