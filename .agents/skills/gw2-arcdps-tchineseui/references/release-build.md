@@ -7,6 +7,7 @@
 - Upstream/base tag currently used by this fork: `v1.0.0`
 - Fork release tag format: `v<upstream-version>-fork.N`
 - Latest successful release created during setup: `v1.0.0-fork.4`
+- Next stable repair tag after runtime acceptance: `v1.0.0-fork.5`
 - Release assets:
   - `arcdps_tchineseui.dll`
   - `arcdps_tchineseui-<tag>.zip`
@@ -18,8 +19,8 @@ Do not use plain semver tags like `v1.1.0` for fork-only releases. Those are res
 The release workflow is `.github/workflows/build-and-release.yml`.
 
 Triggers:
-- Push tag matching `v*`
-- `workflow_dispatch` with optional `new_version`
+- Push a stable fork tag matching `v*-fork.*`
+- `workflow_dispatch` with optional `new_version` and boolean `publish_release`
 
 Build behavior:
 - Runs on `windows-latest`
@@ -27,18 +28,32 @@ Build behavior:
 - Uses Visual Studio/MSBuild
 - Installs vcpkg manifest dependencies for `x64-windows-static`
 - Builds `ArcDPS TChinese UI/ArcDPS TChinese UI.vcxproj`
-- Verifies `ArcDPS TChinese UI/x64/Release/arcdps_tchineseui.dll`
-- Uploads the DLL and ZIP to a GitHub Release
+- Verifies the DLL is x64, exports `get_init_addr` and `get_release_addr`, has no unexpected dynamic MSVC runtime, and prints SHA-256
+- Always uploads the DLL and ZIP as a workflow artifact
+- With `publish_release: false` (default), names the build `candidate-<run>-<sha>` and creates no tag or release
+- With `publish_release: true`, creates the requested or next stable fork tag and publishes both assets to GitHub Releases
+
+Filter stable tags with the exact regex `^v\d+\.\d+\.\d+-fork\.\d+$` before selecting the latest version. Test tags such as `v1.0.0-fork.999-test20260708` must not affect stable numbering.
+
+Recommended candidate flow:
+
+```powershell
+gh workflow run build-and-release.yml --repo jakeuj/GW2-ArcDPS-TChineseUI --ref codex/persist-tchinese-ui-settings -f publish_release=false
+gh run list --repo jakeuj/GW2-ArcDPS-TChineseUI --workflow build-and-release.yml --limit 5
+gh run watch <run-id> --repo jakeuj/GW2-ArcDPS-TChineseUI --exit-status
+gh run download <run-id> --repo jakeuj/GW2-ArcDPS-TChineseUI
+```
+
+Do not publish after build-only checks. First run the GW2 startup, saved-settings, unload/reload, character-select, map, combat, and shutdown acceptance in `runtime-diagnostics.md`.
 
 Recommended release commands:
 
-```bash
+```powershell
 git fetch origin --tags
 git status --short --branch
-git tag --list 'v*-fork.*' --sort=-v:refname | head
-git tag -a v1.0.0-fork.N -m "Release v1.0.0-fork.N"
-git push origin v1.0.0-fork.N
-gh run list --repo jakeuj/GW2-ArcDPS-TChineseUI --branch v1.0.0-fork.N --limit 5
+git tag --list "v*-fork.*" --sort=-v:refname | Where-Object { $_ -match '^v\d+\.\d+\.\d+-fork\.\d+$' } | Select-Object -First 5
+gh workflow run build-and-release.yml --repo jakeuj/GW2-ArcDPS-TChineseUI --ref codex/persist-tchinese-ui-settings -f publish_release=true -f new_version=v1.0.0-fork.N
+gh run list --repo jakeuj/GW2-ArcDPS-TChineseUI --workflow build-and-release.yml --limit 5
 gh run watch <run-id> --repo jakeuj/GW2-ArcDPS-TChineseUI --exit-status
 gh release view v1.0.0-fork.N --repo jakeuj/GW2-ArcDPS-TChineseUI
 ```
@@ -60,7 +75,12 @@ Example:
 
 ## 安裝方式
 - 下載下方的 `arcdps_tchineseui.dll` 或 ZIP 檔。
-- 將 DLL 放到 Guild Wars 2 目錄，與 `arcdps.dll` 放在同一層。
+- 完全關閉 Guild Wars 2 後，備份舊 DLL，再將新 DLL 放到實際載入的根目錄或 `bin64`。
+
+## 回復舊版
+- 完全關閉 Guild Wars 2，放回先前備份或上一個可正常使用的 DLL；保留 INI，除非該版本明確不相容。
+
+> arcdps 與其擴充為第三方工具，不受 ArenaNet 支援，使用風險請自行負擔。
 
 **Full Changelog**: https://github.com/jakeuj/GW2-ArcDPS-TChineseUI/compare/v1.0.0...v1.0.0-fork.N
 ```
@@ -91,6 +111,9 @@ Other project details:
 - `Resource.rc` is UTF-16 LE. Use care when patching and do not accidentally convert encoding.
 - `Resource.rc` should reference repo-relative files under `ArcDPS TChinese UI/resources/`, not an author's local absolute path.
 - The `external/arcdps-extension` submodule is required for includes.
+- A local machine may override the toolset only for diagnostic compilation when v143 is unavailable. Do not treat that binary as the CI/release artifact; keep the project and release workflow on v143 unless a separately validated migration is intentional.
+
+Before accepting an artifact, run `dumpbin /headers`, `/exports`, and `/dependents`; verify x64, both unmangled exports, static runtime behavior, and SHA-256. A non-GW2 smoke process may validate precise load-error lifetime and the release callback, but it cannot prove memory signatures, language application, conversion, or unload safety in the game.
 
 ## Upstream Sync
 

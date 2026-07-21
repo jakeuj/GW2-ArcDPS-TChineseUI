@@ -1,6 +1,6 @@
 ---
 name: gw2-arcdps-tchineseui
-description: Repository-specific guide for the GW2-ArcDPS-TChineseUI fork. Use when Codex works in this repo on ArcDPS TChinese UI settings, Windows MSBuild/vcpkg builds, GitHub Actions release automation, fork tag naming, GitHub Releases, upstream sync/rebase, resource JSON packaging, or maintenance of the arcdps_tchineseui.dll release workflow.
+description: Repository-specific guide for the GW2-ArcDPS-TChineseUI fork. Use when Codex diagnoses extension load or Chinese-application failures; changes memory resolvers, MinHook/AsmJit lifecycle, settings, or UI behavior; builds arcdps_tchineseui.dll with Windows MSBuild/vcpkg; creates candidate artifacts or fork releases; maintains GitHub Actions; packages resource JSON; or syncs/rebases upstream.
 ---
 
 # GW2 ArcDPS TChinese UI
@@ -13,7 +13,8 @@ Use this skill to preserve this fork's release and maintenance conventions while
 
 1. Inspect local state with `git status --short --branch` before changing files, tags, or releases.
 2. Confirm the current branch and target branch. The maintained feature/release branch is usually `codex/persist-tchinese-ui-settings`; `master` tracks the upstream base.
-3. For release, CI, vcpkg, MSBuild, tag, or upstream-sync work, read `references/release-build.md`.
+3. Read `references/runtime-diagnostics.md` for load failures, missing Chinese behavior, memory signatures, hooks, settings application, or unload/reload work.
+4. Read `references/release-build.md` for release, candidate artifact, CI, vcpkg, MSBuild, tag, or upstream-sync work.
 
 ## Repo Rules
 
@@ -22,6 +23,11 @@ Use this skill to preserve this fork's release and maintenance conventions while
 - Do not rewrite or force-push existing release tags unless the user explicitly asks. If a tag-triggered release fails, fix forward and create the next `-fork.N` tag.
 - Keep release notes player-facing: describe TChinese UI behavior, settings persistence, install steps, and known release assets rather than CI-only details.
 - Keep Windows build changes conservative. This repo builds `ArcDPS TChinese UI/ArcDPS TChinese UI.vcxproj` as `Release|x64` and publishes `arcdps_tchineseui.dll`.
+- Never replace the installed DLL while Guild Wars 2 is running. Resolve the loaded path from `arcdps.log`, preserve the previous DLL and INI, and keep rollback possible.
+- Treat arcdps's `not_charsel_or_loading` and `hide_if_combat_or_ooc` callback values as visibility hints. Do not gate saved language or conversion setup on them; doing so can miss the game's `ViewAdvanceText` call and leave the UI untranslated.
+- Keep required language/`ViewAdvanceText` resolver failures fatal and traditional-conversion failures degradable with a visible reason and precise stage log.
+- Detach hooks before freeing their code: disable/remove MinHook, restore the custom caller bytes, free the code cave, release AsmJit, then uninitialize owned MinHook state. Apply the same cleanup to partial initialization failures.
+- Build and upload an untagged candidate before publishing a stable fork release. Do not tag a runtime repair until clean startup, settings application, and same-process unload/reload pass in GW2.
 
 ## Important Files
 
@@ -34,8 +40,9 @@ Use this skill to preserve this fork's release and maintenance conventions while
 
 ## Validation
 
-After changing this skill, run:
+After changing this skill, validate its folder with the current `skill-creator` validator:
 
-```bash
-python3 /Users/jakeuj/.codex/skills/.system/skill-creator/scripts/quick_validate.py .agents/skills/gw2-arcdps-tchineseui
+```powershell
+$validator = Join-Path $env:USERPROFILE ".codex\skills\.system\skill-creator\scripts\quick_validate.py"
+python $validator .agents\skills\gw2-arcdps-tchineseui
 ```

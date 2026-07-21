@@ -17,6 +17,7 @@ void imgui_callback(uint32_t not_charsel_or_loading, uint32_t hide_if_combat_or_
 
 HMODULE g_hSelfModule;
 HMODULE arc_dll;
+std::string g_initErrorMessage;
 
 // get exports
 e3_func_ptr arc_log_file;
@@ -27,26 +28,33 @@ void ArcLog(const char* message) {
 }
 
 arcdps_exports* init_module() {
-
-    bool loading_successful = true;
-    std::string error_message = "Unknown error";
+    arc_exports = {};
+    bool loading_successful = false;
+    std::string initializationError;
 
     try {
-        if (!GW2LangPatch::Initialize()) {
-            throw std::runtime_error("GW2LangPatch initialization failed. Memory signatures not found.");
+        if (!GW2LangPatch::Initialize(initializationError)) {
+            throw std::runtime_error(initializationError.empty()
+                ? "GW2LangPatch initialization failed without a diagnostic message."
+                : initializationError);
         }
+        loading_successful = true;
     }
-    catch (std::exception& e)
+    catch (const std::exception& e)
     {
-        loading_successful = false;
-        error_message = "Error starting up: ";
-        error_message.append(e.what());
-        ArcLog(error_message.c_str());
+        g_initErrorMessage = "Error starting up: ";
+        g_initErrorMessage.append(e.what());
+        ArcLog(g_initErrorMessage.c_str());
+    }
+    catch (...)
+    {
+        g_initErrorMessage = "Error starting up: Unknown exception during GW2LangPatch initialization.";
+        ArcLog(g_initErrorMessage.c_str());
     }
 
     arc_exports.imguivers = IMGUI_VERSION_NUM;
     arc_exports.out_name = "TChinese UI";
-    arc_exports.out_build = "1.0.0";
+    arc_exports.out_build = "1.0.0-fork.5";
 
     if (loading_successful)
     {
@@ -58,10 +66,7 @@ arcdps_exports* init_module() {
     else
     {
         arc_exports.sig = 0;
-        const std::string::size_type size = error_message.size();
-        char* buffer = new char[size + 1]; //we need extra char for NUL
-        memcpy(buffer, error_message.c_str(), size + 1);
-        arc_exports.size = (uintptr_t)buffer;
+        arc_exports.size = reinterpret_cast<uintptr_t>(g_initErrorMessage.c_str());
     }
 
     return &arc_exports;

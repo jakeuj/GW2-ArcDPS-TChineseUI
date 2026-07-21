@@ -7,9 +7,14 @@ on:
         description: "Release version, for example v1.0.0-fork.1. Leave blank to increment the latest fork tag."
         required: false
         type: string
+      publish_release:
+        description: "Create and push a tag, then publish a GitHub Release. Leave disabled for a candidate artifact."
+        required: false
+        default: false
+        type: boolean
   push:
     tags:
-      - "v*"
+      - "v*-fork.*"
 
 permissions:
   contents: write
@@ -23,7 +28,7 @@ env:
 
 jobs:
   build:
-    name: Build DLL and publish release
+    name: Build DLL and optionally publish release
     runs-on: windows-latest
 
     steps:
@@ -42,15 +47,21 @@ jobs:
         run: |
           git fetch --tags --force
 
-          $versionPattern = '^v\d+\.\d+\.\d+(-fork\.\d+)?(-test\d*)?$'
+          $versionPattern = '^v\d+\.\d+\.\d+-fork\.\d+$'
+          $shouldPublish = "${{ github.ref_type }}" -eq "tag" -or "${{ inputs.publish_release }}" -eq "true"
 
-          if ("${{ github.ref_type }}" -eq "tag") {
+          if (-not $shouldPublish) {
+            $shortSha = "${{ github.sha }}".Substring(0, 7)
+            $version = "candidate-${{ github.run_number }}-$shortSha"
+          } elseif ("${{ github.ref_type }}" -eq "tag") {
             $version = "${{ github.ref_name }}"
           } else {
             $version = "${{ inputs.new_version }}"
 
             if ([string]::IsNullOrWhiteSpace($version)) {
-              $latestFork = git tag --list "v[0-9]*.[0-9]*.[0-9]*-fork.[0-9]*" --sort=-v:refname | Select-Object -First 1
+              $latestFork = git tag --list "v[0-9]*.[0-9]*.[0-9]*-fork.[0-9]*" --sort=-v:refname |
+                Where-Object { $_ -match '^v\d+\.\d+\.\d+-fork\.\d+$' } |
+                Select-Object -First 1
 
               if (-not [string]::IsNullOrWhiteSpace($latestFork) -and $latestFork -match '^v(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)-fork\.(?<fork>\d+)$') {
                 $version = "v$($Matches.major).$($Matches.minor).$($Matches.patch)-fork.$([int]$Matches.fork + 1)"
@@ -72,11 +83,12 @@ jobs:
             }
           }
 
-          if ($version -notmatch $versionPattern) {
-            throw "Release version '$version' must match vX.Y.Z or vX.Y.Z-fork.N."
+          if ($shouldPublish -and $version -notmatch $versionPattern) {
+            throw "Fork release version '$version' must match vX.Y.Z-fork.N."
           }
 
           "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "publish=$($shouldPublish.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           "RELEASE_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Configure vcpkg
@@ -119,6 +131,34 @@ jobs:
 
           Get-Item "$env:DLL_PATH" | Format-List FullName,Length,LastWriteTime
 
+          $headers = (& dumpbin /headers "$env:DLL_PATH" 2>&1) -join "`n"
+          if ($LASTEXITCODE -ne 0 -or $headers -notmatch '(?im)^\s*8664 machine \(x64\)') {
+            throw "DLL verification failed: output is not an x64 PE image.`n$headers"
+          }
+
+          $exports = (& dumpbin /exports "$env:DLL_PATH" 2>&1) -join "`n"
+          if ($LASTEXITCODE -ne 0) {
+            throw "dumpbin /exports failed.`n$exports"
+          }
+          foreach ($requiredExport in @('get_init_addr', 'get_release_addr')) {
+            if ($exports -notmatch "(?m)\s$requiredExport\s*$") {
+              throw "Required export '$requiredExport' was not found.`n$exports"
+            }
+          }
+
+          $dependents = (& dumpbin /dependents "$env:DLL_PATH" 2>&1) -join "`n"
+          if ($LASTEXITCODE -ne 0) {
+            throw "dumpbin /dependents failed.`n$dependents"
+          }
+          if ($dependents -match '(?i)\b(?:VCRUNTIME|MSVCP)\d+[^\s]*\.dll\b') {
+            throw "Unexpected dynamic MSVC runtime dependency was found.`n$dependents"
+          }
+
+          $hash = Get-FileHash -LiteralPath "$env:DLL_PATH" -Algorithm SHA256
+          Write-Host "SHA-256: $($hash.Hash)"
+          Write-Host $exports
+          Write-Host $dependents
+
       - name: Package DLL
         id: package
         shell: pwsh
@@ -132,7 +172,7 @@ jobs:
           "zip_name=$packageName" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
       - name: Create tag for manual release
-        if: github.event_name == 'workflow_dispatch'
+        if: github.event_name == 'workflow_dispatch' && steps.version.outputs.publish == 'true'
         shell: pwsh
         run: |
           git config user.name "github-actions[bot]"
@@ -155,6 +195,7 @@ jobs:
             ${{ steps.package.outputs.zip_path }}
 
       - name: Generate release notes with GitHub Models
+        if: steps.version.outputs.publish == 'true'
         id: notes
         uses: actions/github-script@v9
         env:
@@ -166,27 +207,38 @@ jobs:
             const { execFileSync } = require("child_process");
 
             const tag = process.env.RELEASE_VERSION;
-            const allTags = execFileSync("git", ["tag", "--list", "v[0-9]*.[0-9]*.[0-9]*", "--sort=-v:refname"], { encoding: "utf8" })
+            const stableForkTags = execFileSync("git", ["tag", "--list", "v[0-9]*.[0-9]*.[0-9]*-fork.[0-9]*", "--sort=-v:refname"], { encoding: "utf8" })
               .trim()
               .split(/\r?\n/)
-              .filter(Boolean);
-            const previousTag = allTags.find((candidate) => candidate !== tag);
+              .filter((candidate) => /^v\d+\.\d+\.\d+-fork\.\d+$/.test(candidate));
+            const previousTag = stableForkTags.find((candidate) => candidate !== tag);
             const range = previousTag ? `${previousTag}..HEAD` : "HEAD";
             const commits = execFileSync("git", ["log", "--no-merges", "--pretty=format:%h %s", range], { encoding: "utf8" }).trim();
             const compareLine = previousTag
-              ? `\n\n**Full Changelog**: ${previousTag}...${tag}`
+              ? `**Full Changelog**: ${previousTag}...${tag}`
               : "";
 
-            let body = [
+            let summary = [
               "## 更新內容",
               "",
               commits || "- Initial release",
+            ].join("\n");
+
+            const footerLines = [
               "",
               "## 安裝方式",
               "- 下載下方的 `arcdps_tchineseui.dll` 或 ZIP 檔。",
-              "- 將 DLL 放到 Guild Wars 2 目錄，與 `arcdps.dll` 放在同一層。",
-              compareLine.trim(),
-            ].filter(Boolean).join("\n");
+              "- 關閉 Guild Wars 2 後，將 DLL 放到遊戲目錄，與 `arcdps.dll` 放在同一層。",
+              "",
+              "## 回復舊版",
+              "- 關閉 Guild Wars 2，刪除新 DLL 後放回先前備份，或改用上一個可正常使用的版本。",
+              "",
+              "> arcdps 與其擴充為第三方工具，不受 ArenaNet 支援，使用風險請自行負擔。",
+            ];
+            if (compareLine) {
+              footerLines.push("", compareLine);
+            }
+            const footer = footerLines.join("\n");
 
             try {
               const response = await fetch("https://models.github.com/inference/v1/chat/completions", {
@@ -200,7 +252,7 @@ jobs:
                   messages: [
                     {
                       role: "system",
-                      content: "Write concise GitHub release notes in Traditional Chinese. Keep commit intent, group user-visible changes, and include installation notes for a Guild Wars 2 ArcDPS DLL.",
+                      content: "Write only a concise '## 更新內容' section in Taiwan Traditional Chinese. Keep commit intent and group user-visible changes. Do not add installation, rollback, disclaimer, or changelog sections because they are appended separately.",
                     },
                     {
                       role: "user",
@@ -219,16 +271,17 @@ jobs:
               const data = await response.json();
               const generated = data?.choices?.[0]?.message?.content?.trim();
               if (generated) {
-                body = `${generated}${compareLine}`;
+                summary = generated;
               }
             } catch (error) {
               core.warning(`Falling back to commit-based release notes: ${error.message}`);
             }
 
-            fs.writeFileSync("release-notes.md", body, "utf8");
+            fs.writeFileSync("release-notes.md", `${summary}\n${footer}\n`, "utf8");
             core.setOutput("path", "release-notes.md");
 
       - name: Create GitHub Release
+        if: steps.version.outputs.publish == 'true'
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.version.outputs.version }}
