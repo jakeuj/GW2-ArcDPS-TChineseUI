@@ -1,117 +1,229 @@
 <!doctype html>
-<html lang="zh-Hant">
+<html lang="zh-Hant-TW">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="GW2 ArcDPS 繁體中文 UI 外掛，提供 Guild Wars 2 中文介面。先將遊戲畫面切成簡體中文，再轉換與修正為繁體中文，並保存使用者設定。">
+    <meta name="description" content="GW2 ArcDPS 繁體中文 UI 外掛：切換中文介面、套用繁體轉換、保存偏好，並提供安裝、診斷與安全回復指引。">
+    <meta name="author" content="jakeuj">
     <meta name="robots" content="index,follow,max-image-preview:large">
-    <meta name="theme-color" content="#101314">
+    <meta name="theme-color" content="#07100f">
     <link rel="canonical" href="https://gw2.jakeuj.com/">
     <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
     <link rel="alternate icon" href="./assets/icon-192.png" type="image/png">
     <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png">
+    <link rel="preload" href="./assets/plugin-preview.svg" as="image" type="image/svg+xml">
     <meta name="application-name" content="GW2 ArcDPS 繁體中文 UI">
-    <meta name="apple-mobile-web-app-title" content="GW2 ArcDPS 繁體中文 UI">
     <meta property="og:locale" content="zh_TW">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="GW2 ArcDPS 繁體中文 UI">
     <meta property="og:title" content="GW2 ArcDPS 繁體中文 UI 外掛">
-    <meta property="og:description" content="提供 Guild Wars 2 中文介面的 ArcDPS 外掛，將遊戲畫面切成簡體中文後再轉換與修正為繁體中文。">
+    <meta property="og:description" content="讓 Tyria 介面延續你的繁體中文使用習慣，並保存每次啟動的設定。">
     <meta property="og:url" content="https://gw2.jakeuj.com/">
     <meta property="og:image" content="https://gw2.jakeuj.com/assets/plugin-preview.svg">
-    <meta property="og:image:alt" content="GW2 ArcDPS 繁體中文 UI 外掛介面預覽">
+    <meta property="og:image:type" content="image/svg+xml">
+    <meta property="og:image:width" content="880">
+    <meta property="og:image:height" content="640">
+    <meta property="og:image:alt" content="GW2 ArcDPS 繁體中文 UI 外掛設定介面預覽">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="GW2 ArcDPS 繁體中文 UI 外掛">
-    <meta name="twitter:description" content="提供 Guild Wars 2 中文介面的 ArcDPS 外掛，將遊戲畫面切成簡體中文後再轉換與修正為繁體中文。">
+    <meta name="twitter:description" content="中文介面、繁體轉換、設定保存，以及可追查的載入診斷。">
     <meta name="twitter:image" content="https://gw2.jakeuj.com/assets/plugin-preview.svg">
-    <title>GW2 ArcDPS 繁體中文 UI 外掛 | Guild Wars 2 中文介面</title>
+    <title>GW2 ArcDPS 繁體中文 UI｜中文介面外掛</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "GW2 ArcDPS 繁體中文 UI",
+        "applicationCategory": "GameApplication",
+        "operatingSystem": "Windows",
+        "softwareVersion": "1.0.0-fork.5",
+        "description": "提供 Guild Wars 2 中文介面、繁體轉換與設定保存的 ArcDPS 外掛。",
+        "url": "https://gw2.jakeuj.com/",
+        "downloadUrl": "https://github.com/jakeuj/GW2-ArcDPS-TChineseUI/releases/latest",
+        "license": "https://github.com/jakeuj/GW2-ArcDPS-TChineseUI/blob/codex/persist-tchinese-ui-settings/LICENSE.txt",
+        "author": {"@type": "Person", "name": "jakeuj"},
+        "isBasedOn": "https://github.com/m21248074/GW2-ArcDPS-TChineseUI"
+      }
+    </script>
     <link rel="stylesheet" href="./styles.css">
+    <script src="./script.js" defer></script>
   </head>
   <body>
-    <main>
-      <section class="hero" aria-labelledby="page-title">
-        <div class="hero-copy">
-          <p class="eyebrow">Guild Wars 2 ArcDPS Plugin</p>
-          <h1 id="page-title">GW2 ArcDPS 繁體中文 UI</h1>
-          <p class="lead">
-            下載 <strong>arcdps_tchineseui.dll</strong>，讓 Guild Wars 2 介面使用中文。外掛會先將遊戲畫面切換成簡體中文，再進一步轉換與修正為繁體中文。
-          </p>
-          <p class="fork-note">
-            本站是 <a href="https://github.com/m21248074/GW2-ArcDPS-TChineseUI">m21248074/GW2-ArcDPS-TChineseUI</a> 的 fork 維護頁面，延續原作者繁化發布並補上設定保存與自動化 Release。
-          </p>
+    <a class="skip-link" href="#main">跳至主要內容</a>
+    <div class="scroll-progress" aria-hidden="true"><span></span></div>
+    <div class="ambient" aria-hidden="true">
+      <span class="aura aura-one"></span><span class="aura aura-two"></span>
+      <span class="ley ley-one"></span><span class="ley ley-two"></span>
+    </div>
+
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="回到頁首">
+        <span class="brand-mark" aria-hidden="true">繁</span>
+        <span><small>jakeuj GW2 Tools</small>TChinese UI</span>
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+        <span class="sr-only">開啟導覽選單</span><i></i><i></i>
+      </button>
+      <nav id="site-nav" aria-label="主要導覽">
+        <a href="#features">特色</a>
+        <a href="#install">安裝</a>
+        <a href="#diagnostics">診斷</a>
+        <a href="#credits">來源</a>
+        <a class="nav-download" href="https://github.com/jakeuj/GW2-ArcDPS-TChineseUI/releases/latest">下載 fork.5</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <section class="hero section-shell" id="top" aria-labelledby="page-title">
+        <div class="hero-map" aria-hidden="true">
+          <span class="contour contour-one"></span><span class="contour contour-two"></span>
+          <span class="waypoint waypoint-one"></span><span class="waypoint waypoint-two"></span>
+        </div>
+        <div class="hero-copy" data-reveal>
+          <p class="eyebrow"><span></span> ArcDPS localization layer · v1.0.0-fork.5</p>
+          <h1 id="page-title">讓 Tyria 介面<br><em>回到繁體中文。</em></h1>
+          <p class="lead">切換遊戲中文介面、套用內建繁體詞庫，並保存你的選擇。重啟 Guild Wars 2，繼續上次的閱讀習慣。</p>
           <div class="actions" aria-label="主要操作">
-            <a class="button primary" href="https://github.com/jakeuj/GW2-ArcDPS-TChineseUI/releases/latest">下載最新版</a>
-            <a class="button secondary" href="https://github.com/jakeuj/GW2-ArcDPS-TChineseUI">查看 GitHub</a>
+            <a class="button primary" href="https://github.com/jakeuj/GW2-ArcDPS-TChineseUI/releases/latest">
+              <span>下載最新穩定版</span><b aria-hidden="true">↗</b>
+            </a>
+            <a class="button secondary" href="#install">查看安裝步驟</a>
+          </div>
+          <p class="trust-note"><span aria-hidden="true">◇</span> 社群維護 fork，非 ArenaNet、ArcDPS 或上游官方網站。</p>
+        </div>
+
+        <div class="hero-visual" data-reveal data-reveal-delay="140" data-tilt>
+          <div class="visual-chrome"><span>LANGUAGE PIPELINE</span><span>READY</span></div>
+          <div class="language-pipeline" aria-label="簡體中文轉換為繁體中文並保存設定">
+            <div class="pipeline-node"><small>INPUT</small><strong>简体中文</strong></div>
+            <div class="pipeline-route" aria-hidden="true"><i></i></div>
+            <div class="pipeline-node active"><small>CONVERT</small><strong>繁體中文</strong></div>
+            <div class="pipeline-route" aria-hidden="true"><i></i></div>
+            <div class="pipeline-node saved"><small>PERSIST</small><strong>設定保存</strong></div>
+          </div>
+          <div class="preview-frame">
+            <img src="./assets/plugin-preview.svg" width="880" height="640" fetchpriority="high" alt="ArcDPS 繁體中文 UI 設定面板，顯示中文 UI、繁體轉換與設定保存">
+            <span class="scan-line" aria-hidden="true"></span>
           </div>
         </div>
-        <div class="preview" aria-label="外掛介面預覽">
-          <img src="./assets/plugin-preview.svg" alt="ArcDPS 繁體中文 UI 外掛介面預覽">
+      </section>
+
+      <section class="signal-strip" aria-label="專案摘要">
+        <div><strong>2</strong><span>可保存的介面選項</span></div>
+        <div><strong>1</strong><span>獨立 DLL 安裝</span></div>
+        <div><strong>MIT</strong><span>延續上游授權</span></div>
+        <div><strong>LOG</strong><span>精確初始化診斷</span></div>
+      </section>
+
+      <section class="section-shell story" id="features">
+        <div class="section-heading" data-reveal>
+          <p class="eyebrow">What it changes</p>
+          <h2>不只把字換掉，<br>也保留你的選擇。</h2>
+          <p>外掛以 ArcDPS 擴充載入，將中文介面、繁體轉換和重啟後狀態串成一條可理解、可追查的流程。</p>
+        </div>
+        <div class="feature-grid">
+          <article class="feature-card feature-main" data-reveal data-tilt>
+            <span class="card-index">01 / LANGUAGE</span>
+            <div class="glyph-pair" aria-hidden="true"><span>简</span><i>→</i><span>繁</span></div>
+            <h3>繁體詞彙轉換</h3>
+            <p>先啟用遊戲簡體中文介面，再以內建詞庫與額外修正轉成繁體中文。</p>
+          </article>
+          <article class="feature-card" data-reveal data-reveal-delay="80">
+            <span class="card-index">02 / MEMORY</span>
+            <div class="mini-sigil" aria-hidden="true">✓</div>
+            <h3>偏好自動保存</h3>
+            <p><code>chinese_enabled</code> 與 <code>trad_mode_enabled</code> 會寫入 INI，下次啟動重新套用。</p>
+          </article>
+          <article class="feature-card" data-reveal data-reveal-delay="160">
+            <span class="card-index">03 / FALLBACK</span>
+            <div class="mini-sigil" aria-hidden="true">↘</div>
+            <h3>安全降級載入</h3>
+            <p>簡轉繁暫時不可用時，仍保留簡體中文和原本偏好，並顯示具體原因。</p>
+          </article>
         </div>
       </section>
 
-      <section class="content-grid" aria-label="外掛資訊">
-        <article>
-          <h2>主要功能</h2>
-          <ul>
-            <li>提供 ArcDPS 外掛形式的中文 UI 支援。</li>
-            <li>將遊戲畫面切成簡體中文，再轉換為繁體中文。</li>
-            <li>可切換中文 UI 與繁體轉換模式。</li>
-            <li>記住設定，重啟遊戲後自動套用。</li>
-          </ul>
-        </article>
-
-        <article>
-          <h2>安裝方式</h2>
-          <ol>
-            <li>先安裝 <a href="https://www.deltaconnected.com/arcdps/">ArcDPS</a>。</li>
-            <li>從 Releases 下載 <code>arcdps_tchineseui.dll</code>。</li>
-            <li>將 DLL 放到 Guild Wars 2 遊戲根目錄的 <code>bin64</code> 資料夾。</li>
-            <li>進遊戲後按 <code>Shift + Alt + T</code> 開啟 ArcDPS。</li>
-          </ol>
-        </article>
-
-        <article>
-          <h2>設定檔</h2>
-          <p>外掛會將設定寫入：</p>
-          <pre><code>addons/arcdps/arcdps_tchineseui.ini</code></pre>
-          <p>目前保存 <code>chinese_enabled</code> 與 <code>trad_mode_enabled</code>。</p>
-        </article>
-      </section>
-
-      <section class="walkthrough" aria-labelledby="usage-title">
-        <div>
-          <h2 id="usage-title">遊戲內啟用方式</h2>
-          <ol>
-            <li>確認 <code>arcdps.dll</code> 與 <code>arcdps_tchineseui.dll</code> 已放在正確位置。</li>
-            <li>啟動 Guild Wars 2。</li>
-            <li>按 <code>Shift + Alt + T</code> 叫出 ArcDPS 視窗。</li>
-            <li>在 ArcDPS 裡啟用擴展 <strong>TChinese UI</strong>。</li>
-            <li>依需要切換中文 UI 與繁體轉換模式。</li>
-          </ol>
+      <section class="section-shell demo-section" aria-labelledby="demo-title">
+        <div class="demo-copy" data-reveal>
+          <p class="eyebrow">In-game preview</p>
+          <h2 id="demo-title">介面轉換，<br>在遊戲中直接完成。</h2>
+          <p>按 <kbd>Shift</kbd> + <kbd>Alt</kbd> + <kbd>T</kbd> 開啟 ArcDPS，啟用 <strong>TChinese UI</strong>，再依需求切換中文 UI 與繁體模式。</p>
+          <p class="source-note">效果影片來源：原作者巴哈姆特發布文章。</p>
         </div>
-        <div class="effect" aria-label="TChinese UI 效果預覽">
-          <video autoplay loop muted playsinline preload="metadata" poster="./assets/plugin-preview.svg">
+        <div class="video-shell" data-reveal data-reveal-delay="120">
+          <div class="visual-chrome"><span>GAME CAPTURE</span><span>ON VIEW</span></div>
+          <video muted loop playsinline preload="metadata" poster="./assets/plugin-preview.svg" aria-label="TChinese UI 遊戲內效果預覽">
             <source src="./assets/tchinese-ui-demo.mp4" type="video/mp4">
           </video>
+          <button class="video-toggle" type="button" aria-label="播放效果預覽">播放預覽</button>
         </div>
       </section>
 
-      <section class="details" aria-labelledby="download-title">
-        <h2 id="download-title">下載檔案</h2>
-        <p>
-          最新版本會在 GitHub Releases 提供 DLL 與 ZIP。若只想安裝外掛，下載 <code>arcdps_tchineseui.dll</code> 後放到遊戲根目錄的 <code>bin64</code> 裡即可。
-        </p>
-        <a class="text-link" href="https://github.com/jakeuj/GW2-ArcDPS-TChineseUI/releases/latest">前往最新 Release</a>
+      <section class="section-shell install-section" id="install" aria-labelledby="install-title">
+        <div class="section-heading compact" data-reveal>
+          <p class="eyebrow">Safe installation</p>
+          <h2 id="install-title">四步完成，載入位置以日誌為準。</h2>
+          <p>常見位置是遊戲根目錄或 <code>bin64</code>。請以 <code>addons/arcdps/arcdps.log</code> 的完整路徑為準，不要兩邊各留一份。</p>
+        </div>
+        <ol class="install-flow" data-flow>
+          <li><span>01</span><div><strong>準備 ArcDPS</strong><p>先安裝 ArcDPS，完全關閉遊戲並確認 <code>Gw2-64.exe</code> 已結束。</p></div></li>
+          <li><span>02</span><div><strong>備份既有設定</strong><p>備份原 DLL，以及 <code>addons/arcdps/arcdps_tchineseui.ini</code>。</p></div></li>
+          <li><span>03</span><div><strong>放入唯一載入位置</strong><p>下載 <code>arcdps_tchineseui.dll</code>，依日誌路徑替換舊檔。</p></div></li>
+          <li><span>04</span><div><strong>啟用並確認</strong><p>進入 ArcDPS 擴充列表啟用 TChinese UI，勾選需要的模式。</p></div></li>
+        </ol>
       </section>
 
-      <section class="details" aria-labelledby="credits-title">
-        <h2 id="credits-title">來源與致謝</h2>
-        <p>
-          TChinese UI 原始專案來自 <a href="https://github.com/m21248074/GW2-ArcDPS-TChineseUI">m21248074/GW2-ArcDPS-TChineseUI</a>。
-          原作者在巴哈姆特發布的 <strong>TChinese UI v1.0.0</strong> 介紹，說明此外掛會將遊戲畫面改成簡體中文，並以此為基礎進一步翻譯成繁體中文。
-        </p>
-        <a class="text-link" href="https://forum.gamer.com.tw/C.php?bsn=16901&amp;snA=29614&amp;tnum=9">查看原作者巴哈貼文</a>
+      <section class="section-shell diagnostics" id="diagnostics" aria-labelledby="diagnostics-title">
+        <div class="log-panel" data-reveal>
+          <div class="visual-chrome"><span>arcdps.log</span><span class="status-dot">HEALTHY</span></div>
+          <pre><code><span>[trad/enable]</span> enabled
+<span>[init/complete]</span> ready
+<span>[language/queue]</span> language-id=5
+<span>[language/apply]</span> completed</code></pre>
+        </div>
+        <div class="diagnostic-copy" data-reveal data-reveal-delay="120">
+          <p class="eyebrow">Traceable by design</p>
+          <h2 id="diagnostics-title">遇到問題，不必盲猜。</h2>
+          <p><code>fork.5</code> 起會以 <code>[init/&lt;階段&gt;]</code> 標示確切失敗位置。看到 <code>[trad/&lt;階段&gt;] unavailable</code> 則代表外掛已降級載入，簡體中文仍可使用。</p>
+          <a class="text-link" href="https://github.com/jakeuj/GW2-ArcDPS-TChineseUI/issues">附上版本、載入路徑與日誌回報問題 <span>↗</span></a>
+        </div>
+      </section>
+
+      <section class="section-shell download-panel" aria-labelledby="download-title" data-reveal>
+        <div>
+          <p class="eyebrow">Current stable release</p>
+          <h2 id="download-title">v1.0.0-fork.5</h2>
+          <p>Release 提供獨立 DLL 與 ZIP。fork 版本沿用 <code>v&lt;上游版本&gt;-fork.N</code> 命名，避免與上游版本衝突。</p>
+        </div>
+        <div class="download-actions">
+          <a class="button primary" href="https://github.com/jakeuj/GW2-ArcDPS-TChineseUI/releases/tag/v1.0.0-fork.5"><span>下載 fork.5</span><b aria-hidden="true">↓</b></a>
+          <a class="text-link" href="https://github.com/jakeuj/GW2-ArcDPS-TChineseUI/releases">查看所有版本</a>
+        </div>
+      </section>
+
+      <section class="section-shell trust-grid" id="credits">
+        <article data-reveal>
+          <span class="card-index">ROLLBACK</span>
+          <h2>需要回復舊版？</h2>
+          <p>完全關閉遊戲，把日誌所指位置的 DLL 換回備份或上一個可用 Release。INI 通常可以保留。</p>
+        </article>
+        <article data-reveal data-reveal-delay="80">
+          <span class="card-index">UPSTREAM</span>
+          <h2>延續原作者工作</h2>
+          <p>本專案 fork 自 <a href="https://github.com/m21248074/GW2-ArcDPS-TChineseUI">m21248074/GW2-ArcDPS-TChineseUI</a>，保留 MIT License 與原作者歸屬。</p>
+          <a class="text-link" href="https://forum.gamer.com.tw/C.php?bsn=16901&amp;snA=29614&amp;tnum=9">閱讀原作者巴哈文章 <span>↗</span></a>
+        </article>
+        <article data-reveal data-reveal-delay="160">
+          <span class="card-index">NOTICE</span>
+          <h2>第三方工具聲明</h2>
+          <p>ArcDPS 與其擴充不受 ArenaNet 支援。本網站為社群維護頁面，使用風險請自行評估與負擔。</p>
+        </article>
       </section>
     </main>
+
+    <footer>
+      <div><span class="brand-mark" aria-hidden="true">繁</span><p><strong>GW2 ArcDPS 繁體中文 UI</strong><br><small>Community-maintained localization fork</small></p></div>
+      <p><a href="https://github.com/jakeuj/GW2-ArcDPS-TChineseUI">GitHub</a> · <a href="https://github.com/jakeuj/GW2-ArcDPS-TChineseUI/blob/codex/persist-tchinese-ui-settings/LICENSE.txt">MIT License</a></p>
+    </footer>
   </body>
 </html>
