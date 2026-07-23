@@ -1,6 +1,6 @@
 ---
 name: gw2-arcdps-tchineseui
-description: Repository-specific guide for the GW2-ArcDPS-TChineseUI fork. Use when Codex diagnoses extension load or Chinese-application failures; changes memory resolvers, MinHook/AsmJit lifecycle, settings, or UI behavior; builds arcdps_tchineseui.dll with Windows MSBuild/vcpkg; creates candidate artifacts or fork releases; maintains README, GitHub Pages, GitHub Actions, or release notes; packages resource JSON; or syncs/rebases upstream.
+description: Repository-specific guide for the GW2-ArcDPS-TChineseUI fork. Use when Codex diagnoses extension load or Chinese-application failures; changes memory resolvers, MinHook/AsmJit lifecycle, settings, or UI behavior; builds arcdps_tchineseui.dll with Windows MSBuild/vcpkg; creates candidate artifacts or fork releases; maintains README, GitHub Pages content or deployment, GitHub Actions, or release notes; packages resource JSON; or syncs/rebases upstream.
 ---
 
 # GW2 ArcDPS TChinese UI
@@ -15,6 +15,7 @@ Use this skill to preserve this fork's release and maintenance conventions while
 2. Confirm the current branch and target branch. The maintained feature/release branch is usually `codex/persist-tchinese-ui-settings`; `master` tracks the upstream base.
 3. Read `references/runtime-diagnostics.md` for load failures, missing Chinese behavior, memory signatures, hooks, settings application, or unload/reload work.
 4. Read `references/release-build.md` for release, candidate artifact, CI, vcpkg, MSBuild, tag, or upstream-sync work.
+5. Read `references/website-pages.md` before changing, validating, or publishing the website.
 
 ## Repo Rules
 
@@ -23,6 +24,9 @@ Use this skill to preserve this fork's release and maintenance conventions while
 - Do not rewrite or force-push existing release tags unless the user explicitly asks. If a tag-triggered release fails, fix forward and create the next `-fork.N` tag.
 - Keep release notes player-facing: describe TChinese UI behavior, settings persistence, install steps, and known release assets rather than CI-only details.
 - Keep `README.md`, `docs/index.html`, and generated release-note guidance aligned on the latest stable version, install path, rollback steps, healthy log markers, degraded traditional-conversion behavior, and third-party disclaimer.
+- Treat `docs/` on the maintained branch as the website source and the root of `gh-pages` as the deployed copy. A push to `codex/persist-tchinese-ui-settings` does not publish the site.
+- Preserve `docs/CNAME`, `docs/.nojekyll`, `docs/robots.txt`, `docs/sitemap.xml`, the canonical URL, and the `gh-pages` deployment branch. Never replace the existing custom domain silently.
+- Publish only when explicitly requested. Sync the exact validated `docs/` tree to `gh-pages`, commit there, push, and verify the live custom domain serves the new page and local assets.
 - Describe the DLL location as the path actually reported by `addons/arcdps/arcdps.log`; root and `bin64` layouts both exist. Never tell players to keep duplicate DLL copies in both locations.
 - Keep Windows build changes conservative. This repo builds `ArcDPS TChinese UI/ArcDPS TChinese UI.vcxproj` as `Release|x64` and publishes `arcdps_tchineseui.dll`.
 - Never replace the installed DLL while Guild Wars 2 is running. Resolve the loaded path from `arcdps.log`, preserve the previous DLL and INI, and keep rollback possible.
@@ -36,7 +40,8 @@ Use this skill to preserve this fork's release and maintenance conventions while
 - `.github/workflows/build-and-release.yml`: tag/manual release workflow.
 - `.github/workflows/sync-upstream.yml`: scheduled upstream sync PR workflow.
 - `README.md`: repository overview, player install guide, troubleshooting, and maintainer notes.
-- `docs/index.html`: GitHub Pages player guide; keep its operational guidance consistent with `README.md`.
+- `docs/`: maintained GitHub Pages source, including HTML, CSS, JavaScript, media, SEO files, `CNAME`, and `.nojekyll`.
+- `gh-pages` branch root: deployed website copy; update it from validated `docs/`, not by independently editing two divergent versions.
 - `ArcDPS TChinese UI/ArcDPS TChinese UI.vcxproj`: MSBuild/vcpkg project settings.
 - `ArcDPS TChinese UI/Resource.rc`: UTF-16 resource script; preserve encoding.
 - `ArcDPS TChinese UI/resources/*.json`: embedded simplification/traditional conversion resources.

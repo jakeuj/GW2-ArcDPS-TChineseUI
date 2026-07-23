@@ -1,4 +1,4 @@
 interface:
   display_name: "GW2 ArcDPS TChinese UI"
-  short_description: "Repo guide for diagnostics, docs, builds, and releases"
-  default_prompt: "Use $gw2-arcdps-tchineseui to diagnose, document, build, test, or release this fork safely."
+  short_description: "Repo guide for diagnostics, Pages, builds, and releases"
+  default_prompt: "Use $gw2-arcdps-tchineseui to diagnose, document, publish, build, test, or release this fork safely."
